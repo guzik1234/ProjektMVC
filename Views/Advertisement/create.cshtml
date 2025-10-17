@@ -1,0 +1,25 @@
+﻿@model Projekt_MVC.Models.Advertisement
+@{
+    ViewData["Title"] = "Dodaj ogłoszenie";
+}
+<h2>Dodaj nowe ogłoszenie</h2>
+
+<!-- Prosty formularz bez żadnych skryptów -->
+<form action="/Advertisement/Create" method="post">
+    <div class="form-group">
+        <label class="control-label">Tytuł</label>
+        <input type="text" name="Title" class="form-control" required />
+    </div>
+    <div class="form-group">
+        <label class="control-label">Opis</label>
+        <textarea name="Description" class="form-control" required></textarea>
+    </div>
+    <div class="form-group">
+        <label class="control-label">Cena</label>
+        <input type="number" name="Price" class="form-control" required min="0" max="1000000" />
+    </div>
+    <div class="form-group">
+        <input type="submit" value="Utwórz" class="btn btn-primary" />
+        <a href="/Advertisement" class="btn btn-secondary">Powrót</a>
+    </div>
+</form>

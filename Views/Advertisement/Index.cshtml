@@ -1,0 +1,15 @@
+﻿@model List<Projekt_MVC.Models.Advertisement>
+@{
+    ViewData["Title"] = "Wszystkie ogłoszenia";
+}
+<h2>Wszystkie ogłoszenia</h2>
+<table class="table">
+    <thead><tr><th>Tytuł</th><th>Opis</th><th>Cena</th><th>Data</th></tr></thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr><td>@item.Title</td><td>@item.Description</td><td>@item.Price.ToString("C")</td><td>@item.CreatedAt.ToString("dd.MM.yyyy")</td></tr>
+        }
+    </tbody>
+</table>
+<a asp-action="Create" class="btn btn-primary">Dodaj nowe ogłoszenie</a>

@@ -1,8 +1,31 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model List<Projekt_MVC.Models.Advertisement> // <!-- ← WAŻNE: prawidłowy namespace -->
+
+@{
+    ViewData["Title"] = "Strona Główna";
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">ssadasdasdasd jifgdoijkhfsdhjkhjkfsdahuidsfhiuasikeduhfth ASP.NET Core</a>.</p>
+    <h1 class="display-4">Witamy w serwisie ogłoszeń drobnych!</h1>
+    <p>Najnowsze ogłoszenia w naszym serwisie:</p>
+</div>
+
+<div class="row">
+    @foreach (var advertisement in Model)
+    {
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">@advertisement.Title</h5>
+                    <p class="card-text">@advertisement.Description</p>
+                    <p class="card-text"><strong>Cena: @advertisement.Price.ToString("C")</strong></p>
+                    <small class="text-muted">Data dodania: @advertisement.CreatedAt.ToString("dd.MM.yyyy")</small>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="text-center mt-4">
+    <a href="@Url.Action("Index", "Advertisement")" class="btn btn-primary">Zobacz wszystkie ogłoszenia</a>
+    <a href="@Url.Action("Create", "Advertisement")" class="btn btn-success">Dodaj nowe ogłoszenie</a>
 </div>

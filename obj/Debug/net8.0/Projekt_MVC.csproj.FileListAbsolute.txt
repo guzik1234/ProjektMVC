@@ -31,3 +31,4 @@ C:\Users\krzys\OneDrive\Pulpit\studia-inf\5 semestr\APLIKACJE_WEBOWE_MVC\Projekt
 C:\Users\krzys\OneDrive\Pulpit\studia-inf\5 semestr\APLIKACJE_WEBOWE_MVC\Projekt_MVC\obj\Debug\net8.0\Projekt_MVC.pdb
 C:\Users\krzys\OneDrive\Pulpit\studia-inf\5 semestr\APLIKACJE_WEBOWE_MVC\Projekt_MVC\obj\Debug\net8.0\Projekt_MVC.genruntimeconfig.cache
 C:\Users\krzys\OneDrive\Pulpit\studia-inf\5 semestr\APLIKACJE_WEBOWE_MVC\Projekt_MVC\obj\Debug\net8.0\ref\Projekt_MVC.dll
+C:\Users\krzys\OneDrive\Pulpit\studia-inf\5 semestr\APLIKACJE_WEBOWE_MVC\Projekt_MVC\obj\Debug\net8.0\Projekt_MVC.sourcelink.json
