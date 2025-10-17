@@ -1,0 +1,35 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Rr]elease/
+[Dd]ebug/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio cache
+.vs/
+
+# Other
+*.swp
+*.tmp
+*.bak
+*.dbmdl
+*.pdb
+
+# NuGet packages
+*.nupkg
+packages/
+
+# Publish files
+/publish/
+
+# Logs
+*.log
+
+# Rider / JetBrains
+.idea/
