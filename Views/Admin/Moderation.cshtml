@@ -1,0 +1,64 @@
+@model List<ogloszenia.Models.ModerationReport>
+
+@{
+    ViewData["Title"] = "Moderacja ogłoszeń";
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+}
+
+<div class="container mt-4">
+    <h1>Moderacja zgłoszeń</h1>
+
+    @if (Model != null && Model.Count > 0)
+    {
+        <div class="row mt-4">
+            @foreach (var report in Model)
+            {
+                <div class="col-md-12 mb-4">
+                    <div class="card border-warning">
+                        <div class="card-header bg-warning">
+                            <h5 class="mb-0">Zgłoszenie #@report.Id</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>
+                                <strong>Ogłoszenie:</strong>
+                                <a href="/Advertisement/Details/@report.AdvertisementId">@report.Advertisement?.Title</a>
+                            </p>
+                            <p>
+                                <strong>Zgłoszone przez:</strong> @report.ReportedByUser?.Email
+                            </p>
+                            <p>
+                                <strong>Powód:</strong> @report.Reason
+                            </p>
+                            <p>
+                                <strong>Data:</strong> @report.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                            </p>
+
+                            <div class="mt-3">
+                                <form method="post" style="display: inline;">
+                                    <button type="submit" formaction="/Admin/ApproveReport" formmethod="post" name="reportId" value="@report.Id" class="btn btn-danger">
+                                        ✓ Zatwierdzić (usuń ogłoszenie)
+                                    </button>
+                                    <button type="submit" formaction="/Admin/RejectReport" formmethod="post" name="reportId" value="@report.Id" class="btn btn-secondary">
+                                        ✗ Odrzucić
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-success mt-4">
+            <h5>✓ Brak zgłoszeń!</h5>
+            <p>Wszystkie ogłoszenia są w porządku.</p>
+        </div>
+    }
+
+    <div class="mt-4">
+        <a href="/Admin/Dashboard" class="btn btn-secondary">Wróć do panelu</a>
+    </div>
+</div>

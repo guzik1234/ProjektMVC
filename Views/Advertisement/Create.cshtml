@@ -1,0 +1,91 @@
+@model ogloszenia.Models.Advertisement
+
+@{
+    ViewData["Title"] = "Dodaj ogłoszenie";
+    var categories = ViewBag.Categories as List<ogloszenia.Models.Category>;
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h1>Dodaj nowe ogłoszenie</h1>
+
+            <form method="post" asp-action="Create" class="mt-4">
+                <div class="mb-3">
+                    <label for="Title" class="form-label">Tytuł *</label>
+                    <input type="text" class="form-control" id="Title" name="Title" placeholder="Wpisz tytuł ogłoszenia" required />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label for="Description" class="form-label">Krótki opis *</label>
+                    <textarea class="form-control" id="Description" name="Description" rows="3" placeholder="Wpisz krótki opis" required></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label for="DetailedDescription" class="form-label">Szczegółowy opis</label>
+                    <textarea class="form-control" id="DetailedDescription" name="DetailedDescription" rows="5" placeholder="Wpisz szczegółowy opis (możesz używać HTML)"></textarea>
+                    <small class="form-text text-muted">Dozwolone tagi: &lt;p&gt;, &lt;br&gt;, &lt;strong&gt;, &lt;em&gt;, &lt;a&gt;</small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="Categories" class="form-label">Kategorie *</label>
+                    <div class="form-check">
+                        @if (categories != null)
+                        {
+                            @foreach (var category in categories)
+                            {
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="selectedCategories" value="@category.Id" id="cat@category.Id" />
+                                    <label class="form-check-label" for="cat@category.Id">
+                                        @category.Name
+                                    </label>
+                                </div>
+
+                                @if (category.ChildCategories != null && category.ChildCategories.Count > 0)
+                                {
+                                    <div class="ms-3">
+                                        @foreach (var child in category.ChildCategories)
+                                        {
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="selectedCategories" value="@child.Id" id="cat@child.Id" />
+                                                <label class="form-check-label" for="cat@child.Id">
+                                                    └─ @child.Name
+                                                </label>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            }
+                        }
+                    </div>
+                    <span asp-validation-for="Categories" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Multimedia</label>
+                    <input type="file" class="form-control" multiple accept="image/*,audio/*,video/*" />
+                    <small class="form-text text-muted">Maksymalnie 10 plików, każdy do 10 MB</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Pliki do pobrania</label>
+                    <input type="file" class="form-control" multiple />
+                    <small class="form-text text-muted">Maksymalnie 5 plików, każdy do 10 MB</small>
+                </div>
+
+                <div class="alert alert-danger" id="errorAlert" style="display:none;"></div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">Dodaj ogłoszenie</button>
+                    <a href="/Advertisement/Index" class="btn btn-secondary btn-lg">Anuluj</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

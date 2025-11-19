@@ -1,0 +1,79 @@
+@model List<ogloszenia.Models.Advertisement>
+
+@{
+    ViewData["Title"] = "Ogłoszenia z kategorii";
+    var category = ViewBag.Category as ogloszenia.Models.Category;
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+}
+
+<div class="container mt-4">
+    <h1>Kategoria: @category?.Name</h1>
+    <p class="text-muted">@category?.Description</p>
+
+    @if (Model != null && Model.Count > 0)
+    {
+        <div class="row mt-4">
+            @foreach (var ad in Model)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a href="/Advertisement/Details/@ad.Id" class="text-decoration-none">@ad.Title</a>
+                            </h5>
+                            <p class="card-text">@ad.Description.Substring(0, Math.Min(150, ad.Description.Length))...</p>
+                            <p class="text-muted">
+                                <small>👁️ @ad.ViewCount odsłon | @ad.CreatedAt.ToString("dd.MM.yyyy")</small>
+                            </p>
+                            <a href="/Advertisement/Details/@ad.Id" class="btn btn-sm btn-primary">Szczegóły</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Paginacja -->
+        @if (totalPages > 1)
+        {
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    @if (currentPage > 1)
+                    {
+                        <li class="page-item"><a class="page-link" href="?page=1">Pierwsza</a></li>
+                        <li class="page-item"><a class="page-link" href="?page=@(currentPage - 1)">Poprzednia</a></li>
+                    }
+
+                    @for (int i = Math.Max(1, currentPage - 2); i <= Math.Min(totalPages, currentPage + 2); i++)
+                    {
+                        @if (i == currentPage)
+                        {
+                            <li class="page-item active"><span class="page-link">@i</span></li>
+                        }
+                        else
+                        {
+                            <li class="page-item"><a class="page-link" href="?page=@i">@i</a></li>
+                        }
+                    }
+
+                    @if (currentPage < totalPages)
+                    {
+                        <li class="page-item"><a class="page-link" href="?page=@(currentPage + 1)">Następna</a></li>
+                        <li class="page-item"><a class="page-link" href="?page=@totalPages">Ostatnia</a></li>
+                    }
+                </ul>
+            </nav>
+        }
+    }
+    else
+    {
+        <div class="alert alert-info mt-4">
+            <p>Brak ogłoszeń w tej kategorii</p>
+        </div>
+    }
+
+    <div class="mt-4">
+        <a href="/Category/Index" class="btn btn-secondary">Wróć do kategorii</a>
+        <a href="/Advertisement/Index" class="btn btn-primary">Wszystkie ogłoszenia</a>
+    </div>
+</div>

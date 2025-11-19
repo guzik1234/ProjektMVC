@@ -1,0 +1,127 @@
+@model ogloszenia.Models.User
+
+@{
+    ViewData["Title"] = "Mój profil";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h1>Mój profil</h1>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success">
+                    @TempData["SuccessMessage"]
+                </div>
+            }
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Informacje osobowe</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" asp-action="Profile" asp-route-id="@Model.Id">
+                        <div class="mb-3">
+                            <label class="form-label">Nazwa użytkownika</label>
+                            <p class="form-control-plaintext">@Model.Username</p>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <p class="form-control-plaintext">@Model.Email</p>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="firstName" class="form-label">Imię</label>
+                                <input type="text" class="form-control" id="firstName" name="firstName" value="@Model.FirstName" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lastName" class="form-label">Nazwisko</label>
+                                <input type="text" class="form-control" id="lastName" name="lastName" value="@Model.LastName" />
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <h6>Ustawienia interfejsu</h6>
+
+                            <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="pageSize" class="form-label">Liczba ogłoszeń na stronie</label>
+                                <select class="form-select" id="pageSize" name="pageSize">
+                                    <option value="5" selected="@(Model.PageSize == 5)">5</option>
+                                    <option value="10" selected="@(Model.PageSize == 10)">10</option>
+                                    <option value="20" selected="@(Model.PageSize == 20)">20</option>
+                                    <option value="50" selected="@(Model.PageSize == 50)">50</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="theme" class="form-label">Motyw</label>
+                                <select class="form-select" id="theme" name="theme">
+                                    <option value="default" selected="@(Model.Theme == "default")">Domyślny</option>
+                                    <option value="dark" selected="@(Model.Theme == "dark")">Ciemny</option>
+                                    <option value="blue" selected="@(Model.Theme == "blue")">Niebieski</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="language" class="form-label">Język interfejsu</label>
+                            <select class="form-select" id="language" name="language">
+                                <option value="pl" selected="@(Model.Language == "pl")">Polski</option>
+                                <option value="en" selected="@(Model.Language == "en")">English</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Bezpieczeństwo</h5>
+                </div>
+                <div class="card-body">
+                    <a href="/Account/ChangePassword" class="btn btn-warning">Zmień hasło</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Moje ogłoszenia</h5>
+                </div>
+                <div class="card-body">
+                    <p>
+                        <strong>Dodane:</strong> @Model.Advertisements.Count
+                    </p>
+                    <a href="/Advertisement/Index" class="btn btn-sm btn-primary">Przeglądaj wszystkie</a>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Status konta</h5>
+                </div>
+                <div class="card-body">
+                    <p>
+                        <strong>Status:</strong>
+                        <span class="badge bg-success">@(Model.IsActive ? "Aktywne" : "Nieaktywne")</span>
+                    </p>
+                    <p>
+                        <strong>Typ:</strong>
+                        <span class="badge bg-info">@(Model.IsAdmin ? "Administrator" : "Użytkownik")</span>
+                    </p>
+                    <p>
+                        <strong>Konto od:</strong> @Model.CreatedAt.ToString("dd.MM.yyyy")
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

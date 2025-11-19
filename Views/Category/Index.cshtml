@@ -1,0 +1,53 @@
+@model List<ogloszenia.Models.Category>
+
+@{
+    ViewData["Title"] = "Kategorie";
+}
+
+<div class="container mt-4">
+    <h1>Kategorie ogłoszeń</h1>
+    
+    <div class="row mt-4">
+        @if (Model != null && Model.Count > 0)
+        {
+            @foreach (var category in Model)
+            {
+                var adCount = ViewBag.AdCountByCategory?[category.Id] ?? 0;
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">@category.Name</h5>
+                            <p class="card-text">@category.Description</p>
+                            
+                            @if (category.ChildCategories != null && category.ChildCategories.Count > 0)
+                            {
+                                <div class="mb-3">
+                                    <strong>Podkategorie:</strong>
+                                    <ul class="list-unstyled ms-3">
+                                        @foreach (var child in category.ChildCategories)
+                                        {
+                                            <li>
+                                                <a href="/Category/Details/@child.Id">@child.Name</a>
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+                            
+                            <a href="/Category/Details/@category.Id" class="btn btn-sm btn-primary">
+                                Przeglądaj ogłoszenia
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="alert alert-info">
+                <p>Brak kategorii</p>
+            </div>
+        }
+    </div>
+</div>

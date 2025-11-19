@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ogloszenia.Data;
+using ogloszenia.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +15,25 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
 
+// Register in-memory database service
+builder.Services.AddSingleton(sp => InMemoryDatabase.Users);
+builder.Services.AddSingleton(sp => InMemoryDatabase.Categories);
+builder.Services.AddSingleton(sp => InMemoryDatabase.Advertisements);
+builder.Services.AddSingleton(sp => InMemoryDatabase.AdvertisementAttributes);
+builder.Services.AddSingleton(sp => InMemoryDatabase.Dictionaries);
+
+// Add session support
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 var app = builder.Build();
+
+// Initialize sample data
+InMemoryDatabase.Initialize();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -32,6 +51,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseSession(); // Add session middleware
 
 app.UseAuthorization();
 

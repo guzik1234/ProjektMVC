@@ -1,0 +1,117 @@
+@model ogloszenia.Models.Advertisement
+
+@{
+    ViewData["Title"] = "Szczegóły ogłoszenia";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h1>@Model.Title</h1>
+            
+            <div class="alert alert-light border p-3 mb-4">
+                <p>
+                    <strong>Autor:</strong> @Model.User?.FirstName @Model.User?.LastName<br />
+                    <strong>Data dodania:</strong> @Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")<br />
+                    <strong>Odsłony:</strong> @Model.ViewCount<br />
+                    <strong>Status:</strong> <span class="badge bg-success">@Model.Status</span>
+                </p>
+            </div>
+
+            <div class="mb-4">
+                <h3>Kategorie</h3>
+                @foreach (var cat in Model.Categories)
+                {
+                    <span class="badge bg-info me-2">@cat.Name</span>
+                }
+            </div>
+
+            <div class="mb-4">
+                <h3>Opis</h3>
+                <p>@Model.Description</p>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.DetailedDescription))
+            {
+                <div class="mb-4">
+                    <h3>Szczegóły</h3>
+                    <div class="alert alert-light border p-3">
+                        @Html.Raw(Model.DetailedDescription)
+                    </div>
+                </div>
+            }
+
+            @if (Model.AttributeValues != null && Model.AttributeValues.Count > 0)
+            {
+                <div class="mb-4">
+                    <h3>Atrybuty</h3>
+                    <table class="table">
+                        <tbody>
+                            @foreach (var attrVal in Model.AttributeValues)
+                            {
+                                <tr>
+                                    <td><strong>@attrVal.Attribute?.Name</strong></td>
+                                    <td>@attrVal.Value</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+            @if (Model.Media != null && Model.Media.Count > 0)
+            {
+                <div class="mb-4">
+                    <h3>Multimedia</h3>
+                    <div class="row">
+                        @foreach (var media in Model.Media.Where(m => m.MediaType.StartsWith("image")))
+                        {
+                            <div class="col-md-3 mb-3">
+                                <img src="@media.FilePath" class="img-fluid rounded" alt="@media.FileName" />
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (Model.Files != null && Model.Files.Count > 0)
+            {
+                <div class="mb-4">
+                    <h3>Pliki do pobrania</h3>
+                    <ul class="list-group">
+                        @foreach (var file in Model.Files)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>@file.FileName</strong><br />
+                                    <small>@file.Description</small>
+                                </div>
+                                <small class="text-muted">@((file.FileSize / 1024.0).ToString("F2")) KB</small>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            <div class="mb-4">
+                <a href="/Advertisement/Index" class="btn btn-secondary">Wróć do listy</a>
+                <a href="/Advertisement/Edit/@Model.Id" class="btn btn-warning">Edytuj</a>
+                <a href="/Advertisement/Delete/@Model.Id" class="btn btn-danger">Usuń</a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5>Informacje o ogłoszeniu</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Autor:</strong> @Model.User?.Email</p>
+                    <p><strong>Status:</strong> <span class="badge bg-success">@Model.Status</span></p>
+                    <p><strong>Odsłony:</strong> @Model.ViewCount</p>
+                    <button class="btn btn-danger w-100 mb-2">Zgłoś ogłoszenie</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

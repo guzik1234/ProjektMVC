@@ -1,8 +1,116 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Serwis ogłoszeń drobnych";
+    var adminMessage = ViewBag.AdminMessage ?? "Witamy w serwisie ogłoszeń drobnych!";
+    var latestAds = ViewBag.LatestAds as List<ogloszenia.Models.Advertisement>;
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container mt-5">
+    <!-- Hero Section -->
+    <div class="row mb-5">
+        <div class="col-md-8 offset-md-2 text-center">
+            <h1 class="display-4 mb-3">Serwis ogłoszeń drobnych</h1>
+            <p class="lead text-muted">Szukasz czegoś? Może chcesz coś sprzedać? Zapraszamy do naszego serwisu!</p>
+            
+            <div class="input-group mb-4" style="max-width: 600px; margin: 0 auto;">
+                <input type="text" class="form-control form-control-lg" placeholder="Szukaj ogłoszeń..." id="searchInput" />
+                <button class="btn btn-primary btn-lg" type="button" id="searchBtn">Szukaj</button>
+            </div>
+
+            <div class="btn-group" role="group">
+                <a href="/Advertisement/Index" class="btn btn-outline-primary btn-lg">Przeglądaj all</a>
+                <a href="/Advertisement/Create" class="btn btn-primary btn-lg">Dodaj ogłoszenie</a>
+                <a href="/Category/Index" class="btn btn-outline-primary btn-lg">Kategorie</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Message -->
+    @if (!string.IsNullOrEmpty(adminMessage))
+    {
+        <div class="alert alert-info mb-5">
+            <h5>📢 Wiadomość od administracji</h5>
+            <p>@adminMessage</p>
+        </div>
+    }
+
+    <!-- Latest Advertisements -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2>Najnowsze ogłoszenia</h2>
+            <hr />
+        </div>
+
+        @if (latestAds != null && latestAds.Count > 0)
+        {
+            @foreach (var ad in latestAds.Take(6))
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a href="/Advertisement/Details/@ad.Id" class="text-decoration-none">@ad.Title</a>
+                            </h5>
+                            <p class="card-text text-muted">
+                                <small>@ad.CreatedAt.ToString("dd.MM.yyyy HH:mm")</small>
+                            </p>
+                            <p class="card-text">
+                                @ad.Description.Substring(0, Math.Min(100, ad.Description.Length))...
+                            </p>
+                            <div class="mb-2">
+                                @foreach (var cat in ad.Categories.Take(2))
+                                {
+                                    <span class="badge bg-info">@cat.Name</span>
+                                }
+                            </div>
+                            <p class="text-muted">
+                                <small>👁️ @ad.ViewCount odsłon</small>
+                            </p>
+                            <a href="/Advertisement/Details/@ad.Id" class="btn btn-sm btn-primary">Szczegóły</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="alert alert-info">Brak ogłoszeń</div>
+            </div>
+        }
+    </div>
+
+    <!-- Features -->
+    <div class="row bg-light py-5 rounded mb-5">
+        <div class="col-md-3 text-center">
+            <h5>📋 Łatwe dodawanie</h5>
+            <p class="text-muted">Dodaj ogłoszenie w zaledwie kilka minut</p>
+        </div>
+        <div class="col-md-3 text-center">
+            <h5>🔍 Szybkie wyszukiwanie</h5>
+            <p class="text-muted">Znajdź to co szukasz w sekundach</p>
+        </div>
+        <div class="col-md-3 text-center">
+            <h5>📁 Kategorie</h5>
+            <p class="text-muted">Przejrzane kategorie ogłoszeń</p>
+        </div>
+        <div class="col-md-3 text-center">
+            <h5>✅ Bezpieczna transakcja</h5>
+            <p class="text-muted">Kontakt bezpośredni ze sprzedawcą</p>
+        </div>
+    </div>
 </div>
+
+<script>
+    document.getElementById('searchBtn').addEventListener('click', function() {
+        const query = document.getElementById('searchInput').value;
+        if (query.trim()) {
+            window.location.href = '/Advertisement/Search?q=' + encodeURIComponent(query);
+        }
+    });
+    
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('searchBtn').click();
+        }
+    });
+</script>

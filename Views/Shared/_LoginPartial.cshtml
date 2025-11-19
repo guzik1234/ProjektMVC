@@ -1,26 +1,36 @@
-﻿@using Microsoft.AspNetCore.Identity
-@inject SignInManager<IdentityUser> SignInManager
-@inject UserManager<IdentityUser> UserManager
+﻿@{
+    var userId = Context.Session.GetInt32("UserId");
+    var username = Context.Session.GetString("Username");
+    var isAdmin = Context.Session.GetInt32("IsAdmin") == 1;
+}
 
 <ul class="navbar-nav">
-@if (SignInManager.IsSignedIn(User))
+@if (userId.HasValue)
 {
-    <li class="nav-item">
-        <a  class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @User.Identity?.Name!</a>
-    </li>
-    <li class="nav-item">
-        <form  class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-            <button  type="submit" class="nav-link btn btn-link text-dark">Logout</button>
-        </form>
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button" data-bs-toggle="dropdown">
+            👤 @username
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="/Account/Profile">Mój profil</a></li>
+            <li><a class="dropdown-item" href="/Advertisement/Index">Moje ogłoszenia</a></li>
+            @if (isAdmin)
+            {
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="/Admin/Dashboard">Panel administracyjny</a></li>
+            }
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="/Account/Logout">Wyloguj się</a></li>
+        </ul>
     </li>
 }
 else
 {
     <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">Register</a>
+        <a class="nav-link text-dark" href="/Account/Login">Logowanie</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Login</a>
+        <a class="nav-link text-dark" href="/Account/Register">Rejestracja</a>
     </li>
 }
 </ul>

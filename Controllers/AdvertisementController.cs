@@ -1,0 +1,289 @@
+using Microsoft.AspNetCore.Mvc;
+using ogloszenia.Models;
+using ogloszenia.Services;
+using System.Linq;
+
+namespace ogloszenia.Controllers
+{
+    public class AdvertisementController : Controller
+    {
+        private readonly List<Advertisement> _advertisements;
+        private readonly List<Category> _categories;
+        private readonly List<AdvertisementAttribute> _attributes;
+        private readonly List<AdvertisementAttributeValue> _attributeValues;
+
+        public AdvertisementController()
+        {
+            _advertisements = InMemoryDatabase.Advertisements;
+            _categories = InMemoryDatabase.Categories;
+            _attributes = InMemoryDatabase.AdvertisementAttributes;
+            _attributeValues = InMemoryDatabase.AttributeValues;
+        }
+
+        // GET: /Advertisement/Index
+        public IActionResult Index(int page = 1, int pageSize = 10)
+        {
+            var ads = _advertisements
+                .Where(a => a.Status == AdvertisementStatus.Active)
+                .OrderByDescending(a => a.CreatedAt)
+                .ToList();
+
+            int totalPages = (int)Math.Ceiling(ads.Count / (double)pageSize);
+            var pagedAds = ads
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.PageSize = pageSize;
+
+            return View(pagedAds);
+        }
+
+        // GET: /Advertisement/Details/5
+        public IActionResult Details(int id)
+        {
+            var ad = _advertisements.FirstOrDefault(a => a.Id == id);
+            if (ad == null)
+            {
+                return NotFound();
+            }
+
+            // Increment view count
+            ad.ViewCount++;
+
+            return View(ad);
+        }
+
+        // GET: /Advertisement/Create
+        public IActionResult Create()
+        {
+            ViewBag.Categories = _categories.Where(c => c.ParentCategoryId == null).ToList();
+            return View();
+        }
+
+        // POST: /Advertisement/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Create(Advertisement advertisement, int[] selectedCategories)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Categories = _categories.Where(c => c.ParentCategoryId == null).ToList();
+                return View(advertisement);
+            }
+
+            // Check for forbidden words
+            var forbiddenWords = InMemoryDatabase.SystemSettings.ForbiddenWords;
+            var titleLower = advertisement.Title.ToLower();
+            var descLower = advertisement.Description.ToLower();
+
+            foreach (var word in forbiddenWords)
+            {
+                if (titleLower.Contains(word.ToLower()) || descLower.Contains(word.ToLower()))
+                {
+                    ModelState.AddModelError("", "Ogłoszenie zawiera niedozwolone słowa");
+                    ViewBag.Categories = _categories.Where(c => c.ParentCategoryId == null).ToList();
+                    return View(advertisement);
+                }
+            }
+
+            // Get current user from session (for demo, use first user)
+            int userId = 1; // TODO: Get from session
+            var user = InMemoryDatabase.Users.FirstOrDefault(u => u.Id == userId);
+
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            advertisement.Id = InMemoryDatabase.GetNextAdvertisementId();
+            advertisement.UserId = userId;
+            advertisement.User = user;
+            advertisement.CreatedAt = DateTime.Now;
+            advertisement.Status = AdvertisementStatus.Active;
+            advertisement.ViewCount = 0;
+
+            // Add selected categories
+            if (selectedCategories != null && selectedCategories.Length > 0)
+            {
+                foreach (var catId in selectedCategories)
+                {
+                    var category = _categories.FirstOrDefault(c => c.Id == catId);
+                    if (category != null)
+                    {
+                        advertisement.Categories.Add(category);
+                    }
+                }
+            }
+
+            _advertisements.Add(advertisement);
+            user.Advertisements.Add(advertisement);
+
+            return RedirectToAction(nameof(Details), new { id = advertisement.Id });
+        }
+
+        // GET: /Advertisement/Edit/5
+        public IActionResult Edit(int id)
+        {
+            var ad = _advertisements.FirstOrDefault(a => a.Id == id);
+            if (ad == null)
+            {
+                return NotFound();
+            }
+
+            // Check if current user owns this advertisement
+            int userId = 1; // TODO: Get from session
+            if (ad.UserId != userId)
+            {
+                return Forbid();
+            }
+
+            ViewBag.Categories = _categories.Where(c => c.ParentCategoryId == null).ToList();
+            ViewBag.SelectedCategoryIds = ad.Categories.Select(c => c.Id).ToArray();
+
+            return View(ad);
+        }
+
+        // POST: /Advertisement/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(int id, Advertisement advertisement, int[] selectedCategories)
+        {
+            var ad = _advertisements.FirstOrDefault(a => a.Id == id);
+            if (ad == null)
+            {
+                return NotFound();
+            }
+
+            int userId = 1; // TODO: Get from session
+            if (ad.UserId != userId)
+            {
+                return Forbid();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Categories = _categories.Where(c => c.ParentCategoryId == null).ToList();
+                ViewBag.SelectedCategoryIds = ad.Categories.Select(c => c.Id).ToArray();
+                return View(ad);
+            }
+
+            ad.Title = advertisement.Title;
+            ad.Description = advertisement.Description;
+            ad.DetailedDescription = advertisement.DetailedDescription;
+            ad.UpdatedAt = DateTime.Now;
+
+            // Update categories
+            ad.Categories.Clear();
+            if (selectedCategories != null && selectedCategories.Length > 0)
+            {
+                foreach (var catId in selectedCategories)
+                {
+                    var category = _categories.FirstOrDefault(c => c.Id == catId);
+                    if (category != null)
+                    {
+                        ad.Categories.Add(category);
+                    }
+                }
+            }
+
+            return RedirectToAction(nameof(Details), new { id = ad.Id });
+        }
+
+        // GET: /Advertisement/Delete/5
+        public IActionResult Delete(int id)
+        {
+            var ad = _advertisements.FirstOrDefault(a => a.Id == id);
+            if (ad == null)
+            {
+                return NotFound();
+            }
+
+            int userId = 1; // TODO: Get from session
+            if (ad.UserId != userId && !User.IsInRole("Admin"))
+            {
+                return Forbid();
+            }
+
+            return View(ad);
+        }
+
+        // POST: /Advertisement/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteConfirmed(int id)
+        {
+            var ad = _advertisements.FirstOrDefault(a => a.Id == id);
+            if (ad == null)
+            {
+                return NotFound();
+            }
+
+            int userId = 1; // TODO: Get from session
+            if (ad.UserId != userId && !User.IsInRole("Admin"))
+            {
+                return Forbid();
+            }
+
+            _advertisements.Remove(ad);
+            return RedirectToAction(nameof(Index));
+        }
+
+        // GET: /Advertisement/ByCategory/5
+        public IActionResult ByCategory(int categoryId, int page = 1, int pageSize = 10)
+        {
+            var category = _categories.FirstOrDefault(c => c.Id == categoryId);
+            if (category == null)
+            {
+                return NotFound();
+            }
+
+            var ads = _advertisements
+                .Where(a => a.Status == AdvertisementStatus.Active && a.Categories.Any(c => c.Id == categoryId))
+                .OrderByDescending(a => a.CreatedAt)
+                .ToList();
+
+            int totalPages = (int)Math.Ceiling(ads.Count / (double)pageSize);
+            var pagedAds = ads
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.PageSize = pageSize;
+            ViewBag.Category = category;
+
+            return View("Index", pagedAds);
+        }
+
+        // GET: /Advertisement/Search
+        public IActionResult Search(string q = "", int page = 1, int pageSize = 10)
+        {
+            var query = q?.ToLower() ?? "";
+
+            var ads = _advertisements
+                .Where(a => a.Status == AdvertisementStatus.Active &&
+                    (string.IsNullOrEmpty(query) || 
+                     a.Title.ToLower().Contains(query) || 
+                     a.Description.ToLower().Contains(query)))
+                .OrderByDescending(a => a.CreatedAt)
+                .ToList();
+
+            int totalPages = (int)Math.Ceiling(ads.Count / (double)pageSize);
+            var pagedAds = ads
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.PageSize = pageSize;
+            ViewBag.SearchQuery = q;
+
+            return View("Index", pagedAds);
+        }
+    }
+}

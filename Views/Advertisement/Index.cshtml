@@ -1,0 +1,116 @@
+@model List<ogloszenia.Models.Advertisement>
+
+@{
+    ViewData["Title"] = "Ogłoszenia";
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    string searchQuery = ViewBag.SearchQuery ?? "";
+    var category = ViewBag.Category as ogloszenia.Models.Category;
+}
+
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>
+                @if (category != null)
+                {
+                    <text>Ogłoszenia z kategorii: @category.Name</text>
+                }
+                else if (!string.IsNullOrEmpty(searchQuery))
+                {
+                    <text>Wyniki wyszukiwania: "@searchQuery"</text>
+                }
+                else
+                {
+                    <text>Wszystkie ogłoszenia</text>
+                }
+            </h1>
+        </div>
+        <div class="col-md-4">
+            <form method="get" action="/Advertisement/Search" class="d-flex gap-2">
+                <input type="text" name="q" class="form-control" placeholder="Szukaj ogłoszeń..." value="@searchQuery" />
+                <button type="submit" class="btn btn-primary">Szukaj</button>
+            </form>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Count > 0)
+    {
+        <div class="row">
+            @foreach (var ad in Model)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a href="/Advertisement/Details/@ad.Id" class="text-decoration-none">@ad.Title</a>
+                            </h5>
+                            <p class="card-text text-muted">
+                                <small>Dodane: @ad.CreatedAt.ToString("dd.MM.yyyy HH:mm")</small><br />
+                                <small>👁️ Odsłony: @ad.ViewCount</small>
+                            </p>
+                            <p class="card-text">@ad.Description.Substring(0, Math.Min(150, ad.Description.Length))...</p>
+                            
+                            <div class="mb-2">
+                                @foreach (var cat in ad.Categories)
+                                {
+                                    <span class="badge bg-info">@cat.Name</span>
+                                }
+                            </div>
+
+                            <p class="text-muted">
+                                <small>Autor: @ad.User?.FirstName @ad.User?.LastName</small>
+                            </p>
+
+                            <a href="/Advertisement/Details/@ad.Id" class="btn btn-sm btn-primary">Szczegóły</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Paginacja -->
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mt-4">
+                @if (currentPage > 1)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1&q=@searchQuery">Pierwsza</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=@(currentPage - 1)&q=@searchQuery">Poprzednia</a>
+                    </li>
+                }
+
+                @for (int i = Math.Max(1, currentPage - 2); i <= Math.Min(totalPages, currentPage + 2); i++)
+                {
+                    @if (i == currentPage)
+                    {
+                        <li class="page-item active"><span class="page-link">@i</span></li>
+                    }
+                    else
+                    {
+                        <li class="page-item"><a class="page-link" href="?page=@i&q=@searchQuery">@i</a></li>
+                    }
+                }
+
+                @if (currentPage < totalPages)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="?page=@(currentPage + 1)&q=@searchQuery">Następna</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=@totalPages&q=@searchQuery">Ostatnia</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <h5>Brak ogłoszeń</h5>
+            <p>Niestety nie znaleziono ogłoszeń. Spróbuj zmienić warunki wyszukiwania.</p>
+        </div>
+    }
+</div>

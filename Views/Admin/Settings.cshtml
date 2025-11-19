@@ -1,0 +1,38 @@
+@model ogloszenia.Models.SystemSettings
+
+@{
+    ViewData["Title"] = "Ustawienia serwisu";
+}
+
+<div class="container mt-4">
+    <h1>Ustawienia serwisu</h1>
+
+    <form method="post" asp-action="Settings" class="mt-4">
+        <div class="mb-4">
+            <label for="adminMessage" class="form-label">Wiadomość dla użytkowników</label>
+            <textarea class="form-control" id="adminMessage" name="adminMessage" rows="5">@Model.AdminMessage</textarea>
+            <small class="form-text text-muted">Ta wiadomość będzie wyświetlana na stronie głównej</small>
+        </div>
+
+        <div class="mb-4">
+            <label for="maxFileSize" class="form-label">Maksymalny rozmiar pliku (MB)</label>
+            <input type="number" class="form-control" id="maxFileSize" value="@(Model.MaxFileSize / (1024 * 1024))" disabled />
+            <small class="form-text text-muted">Aktualnie: @(Model.MaxFileSize / (1024 * 1024)) MB</small>
+        </div>
+
+        <div class="mb-4">
+            <label for="maxFiles" class="form-label">Maksymalna liczba plików</label>
+            <input type="number" class="form-control" id="maxFiles" value="@Model.MaxFilesPerAdvertisement" disabled />
+            <small class="form-text text-muted">Aktualnie: @Model.MaxFilesPerAdvertisement</small>
+        </div>
+
+        <div class="mb-4">
+            <label for="maxMedia" class="form-label">Maksymalna liczba multimediów</label>
+            <input type="number" class="form-control" id="maxMedia" value="@Model.MaxMediaPerAdvertisement" disabled />
+            <small class="form-text text-muted">Aktualnie: @Model.MaxMediaPerAdvertisement</small>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Zapisz ustawienia</button>
+        <a href="/Admin/Dashboard" class="btn btn-secondary">Anuluj</a>
+    </form>
+</div>

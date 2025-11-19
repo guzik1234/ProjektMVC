@@ -1,0 +1,61 @@
+@model List<ogloszenia.Models.Category>
+
+@{
+    ViewData["Title"] = "Zarządzanie kategoriami";
+}
+
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>Zarządzanie kategoriami</h1>
+        </div>
+        <div class="col-md-4">
+            <a href="/Admin/CreateCategory" class="btn btn-primary float-end">+ Dodaj nową kategorię</a>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Count > 0)
+    {
+        <div class="row">
+            @foreach (var category in Model)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">@category.Name</h5>
+                            <p class="card-text text-muted">@category.Description</p>
+                            
+                            @if (category.ChildCategories != null && category.ChildCategories.Count > 0)
+                            {
+                                <div class="mb-2">
+                                    <strong>Podkategorie (@category.ChildCategories.Count):</strong>
+                                    <ul class="list-unstyled ms-3 small">
+                                        @foreach (var child in category.ChildCategories)
+                                        {
+                                            <li>└─ @child.Name</li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+
+                            <div class="mt-3">
+                                <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editCategory@category.Id">
+                                    Edytuj
+                                </button>
+                                <a href="/Admin/CreateCategory?parentId=@category.Id" class="btn btn-sm btn-info">Dodaj podkategorię</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">Brak kategorii. <a href="/Admin/CreateCategory">Dodaj pierwszą kategorię</a></div>
+    }
+
+    <div class="mt-4">
+        <a href="/Admin/Dashboard" class="btn btn-secondary">Wróć do panelu</a>
+    </div>
+</div>
