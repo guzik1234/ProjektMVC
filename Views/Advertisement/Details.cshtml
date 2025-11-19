@@ -64,13 +64,76 @@
                 <div class="mb-4">
                     <h3>Multimedia</h3>
                     <div class="row">
+                        @* Thumbnails that open the modal *@
                         @foreach (var media in Model.Media.Where(m => m.MediaType.StartsWith("image")))
                         {
+                            var idx = Model.Media.Where(m2 => m2.MediaType.StartsWith("image")).ToList().FindIndex(m2 => m2.Id == media.Id);
                             <div class="col-md-3 mb-3">
-                                <img src="@media.FilePath" class="img-fluid rounded" alt="@media.FileName" />
+                                <img src="@media.FilePath" class="img-fluid rounded media-thumb" alt="@media.FileName" data-index="@idx" style="cursor:pointer;" />
                             </div>
                         }
                     </div>
+
+                    @* Modal with carousel for enlarged images *@
+                    <div class="modal fade" id="mediaModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-body p-0">
+                                    <div id="mediaCarousel" class="carousel slide" data-bs-ride="false">
+                                        <div class="carousel-inner">
+                                            @{
+                                                var images = Model.Media.Where(m => m.MediaType.StartsWith("image")).ToList();
+                                                for (int i = 0; i < images.Count; i++)
+                                                {
+                                                    var im = images[i];
+                                                    <text>
+                                                        <div class="carousel-item @(i==0 ? "active" : "") text-center">
+                                                            <img src="@im.FilePath" class="d-block w-100" alt="@im.FileName" />
+                                                        </div>
+                                                    </text>
+                                                }
+                                            }
+                                        </div>
+
+                                        <button class="carousel-control-prev" type="button" data-bs-target="#mediaCarousel" data-bs-slide="prev">
+                                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                            <span class="visually-hidden">Previous</span>
+                                        </button>
+                                        <button class="carousel-control-next" type="button" data-bs-target="#mediaCarousel" data-bs-slide="next">
+                                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                            <span class="visually-hidden">Next</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zamknij</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            var modalEl = document.getElementById('mediaModal');
+                            if (!modalEl) return;
+                            var modal = new bootstrap.Modal(modalEl);
+                            var carouselEl = document.getElementById('mediaCarousel');
+                            var bsCarousel = null;
+                            if (carouselEl) {
+                                bsCarousel = new bootstrap.Carousel(carouselEl, { interval: false, ride: false });
+                            }
+
+                            document.querySelectorAll('.media-thumb').forEach(function (el) {
+                                el.addEventListener('click', function () {
+                                    var idx = parseInt(el.getAttribute('data-index')) || 0;
+                                    if (bsCarousel) {
+                                        bsCarousel.to(idx);
+                                    }
+                                    modal.show();
+                                });
+                            });
+                        });
+                    </script>
                 </div>
             }
 
@@ -86,7 +149,10 @@
                                     <strong>@file.FileName</strong><br />
                                     <small>@file.Description</small>
                                 </div>
-                                <small class="text-muted">@((file.FileSize / 1024.0).ToString("F2")) KB</small>
+                                <div class="d-flex align-items-center gap-2">
+                                    <small class="text-muted">@((file.FileSize / 1024.0).ToString("F2")) KB</small>
+                                    <a asp-action="DownloadFile" asp-route-fileId="@file.Id" class="btn btn-sm btn-outline-primary">Pobierz</a>
+                                </div>
                             </li>
                         }
                     </ul>
