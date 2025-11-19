@@ -461,7 +461,7 @@ namespace ogloszenia.Controllers
         }
 
         // POST: /Advertisement/DeleteMedia/{mediaId}
-        [HttpPost]
+        [HttpPost("Advertisement/DeleteMedia/{mediaId}")]
         public IActionResult DeleteMedia(int mediaId)
         {
             var media = InMemoryDatabase.Media.FirstOrDefault(m => m.Id == mediaId);
