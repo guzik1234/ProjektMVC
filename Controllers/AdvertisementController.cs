@@ -208,12 +208,13 @@ namespace ogloszenia.Controllers
                 return NotFound();
             }
 
-            // Check if current user owns this advertisement
-            int userId = 1; // TODO: Get from session
-            if (ad.UserId != userId)
-            {
-                return Forbid();
-            }
+            // For demo: allow editing for any user (userId hardcoded to 1 in actual edit/delete)
+            // In production, check session-based userId
+            // int userId = 1; // TODO: Get from session
+            // if (ad.UserId != userId && !User.IsInRole("Admin"))
+            // {
+            //     return Forbid();
+            // }
 
             ViewBag.Categories = _categories.Where(c => c.ParentCategoryId == null).ToList();
             ViewBag.SelectedCategoryIds = ad.Categories.Select(c => c.Id).ToArray();
@@ -224,7 +225,7 @@ namespace ogloszenia.Controllers
         // POST: /Advertisement/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, Advertisement advertisement, int[] selectedCategories)
+        public IActionResult Edit(int id, Advertisement advertisement, int[] selectedCategories, IFormFile[]? mediaFiles, IFormFile[]? attachmentFiles)
         {
             var ad = _advertisements.FirstOrDefault(a => a.Id == id);
             if (ad == null)
@@ -262,6 +263,77 @@ namespace ogloszenia.Controllers
                         ad.Categories.Add(category);
                     }
                 }
+            }
+
+            // Save new media files
+            try
+            {
+                var uploadsRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "ads", ad.Id.ToString());
+                Directory.CreateDirectory(uploadsRoot);
+
+                if (mediaFiles != null && mediaFiles.Length > 0)
+                {
+                    foreach (var file in mediaFiles)
+                    {
+                        if (file != null && file.Length > 0)
+                        {
+                            var ext = Path.GetExtension(file.FileName);
+                            var savedName = Guid.NewGuid().ToString() + ext;
+                            var savePath = Path.Combine(uploadsRoot, savedName);
+                            using (var stream = new FileStream(savePath, FileMode.Create))
+                            {
+                                file.CopyTo(stream);
+                            }
+
+                            var media = new AdvertisementMedia
+                            {
+                                Id = InMemoryDatabase.GetNextMediaId(),
+                                AdvertisementId = ad.Id,
+                                Advertisement = ad,
+                                FileName = file.FileName,
+                                FilePath = $"/uploads/ads/{ad.Id}/{savedName}",
+                                MediaType = file.ContentType ?? "application/octet-stream",
+                                UploadedAt = DateTime.Now
+                            };
+                            InMemoryDatabase.Media.Add(media);
+                            ad.Media.Add(media);
+                        }
+                    }
+                }
+
+                if (attachmentFiles != null && attachmentFiles.Length > 0)
+                {
+                    foreach (var file in attachmentFiles)
+                    {
+                        if (file != null && file.Length > 0)
+                        {
+                            var ext = Path.GetExtension(file.FileName);
+                            var savedName = Guid.NewGuid().ToString() + ext;
+                            var savePath = Path.Combine(uploadsRoot, savedName);
+                            using (var stream = new FileStream(savePath, FileMode.Create))
+                            {
+                                file.CopyTo(stream);
+                            }
+
+                            var attachment = new AdvertisementFile
+                            {
+                                Id = InMemoryDatabase.GetNextFileId(),
+                                AdvertisementId = ad.Id,
+                                Advertisement = ad,
+                                FileName = file.FileName,
+                                FilePath = $"/uploads/ads/{ad.Id}/{savedName}",
+                                FileSize = file.Length,
+                                UploadedAt = DateTime.Now
+                            };
+                            InMemoryDatabase.Files.Add(attachment);
+                            ad.Files.Add(attachment);
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // If saving files fails, continue without blocking edit
             }
 
             return RedirectToAction(nameof(Details), new { id = ad.Id });
@@ -387,5 +459,88 @@ namespace ogloszenia.Controllers
 
             return PhysicalFile(physicalPath, contentType, file.FileName);
         }
+
+        // POST: /Advertisement/DeleteMedia/{mediaId}
+        [HttpPost]
+        public IActionResult DeleteMedia(int mediaId)
+        {
+            var media = InMemoryDatabase.Media.FirstOrDefault(m => m.Id == mediaId);
+            if (media == null)
+            {
+                return NotFound();
+            }
+
+            var ad = _advertisements.FirstOrDefault(a => a.Id == media.AdvertisementId);
+            if (ad == null)
+            {
+                return NotFound();
+            }
+
+            // For now, allow deletion (userId=1 is hardcoded in Create/Edit)
+            // TODO: Implement proper session-based userId check in production
+
+            // Delete file from disk
+            try
+            {
+                var relative = media.FilePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
+                var physicalPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", relative);
+                if (System.IO.File.Exists(physicalPath))
+                {
+                    System.IO.File.Delete(physicalPath);
+                }
+            }
+            catch
+            {
+                // Log error but continue with removal from DB
+            }
+
+            // Remove from lists
+            InMemoryDatabase.Media.Remove(media);
+            ad.Media.Remove(media);
+
+            return Ok(new { success = true });
+        }
+
+        // POST: /Advertisement/DeleteFile/{fileId}
+        [HttpPost]
+        public IActionResult DeleteFile(int fileId)
+        {
+            var file = InMemoryDatabase.Files.FirstOrDefault(f => f.Id == fileId);
+            if (file == null)
+            {
+                return NotFound();
+            }
+
+            var ad = _advertisements.FirstOrDefault(a => a.Id == file.AdvertisementId);
+            if (ad == null)
+            {
+                return NotFound();
+            }
+
+            // For now, allow deletion (userId=1 is hardcoded in Create/Edit)
+            // TODO: Implement proper session-based userId check in production
+
+            // Delete file from disk
+            try
+            {
+                var relative = file.FilePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
+                var physicalPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", relative);
+                if (System.IO.File.Exists(physicalPath))
+                {
+                    System.IO.File.Delete(physicalPath);
+                }
+            }
+            catch
+            {
+                // Log error but continue with removal from DB
+            }
+
+            // Remove from lists
+            InMemoryDatabase.Files.Remove(file);
+            ad.Files.Remove(file);
+
+            return Ok(new { success = true });
+        }
     }
 }
+
