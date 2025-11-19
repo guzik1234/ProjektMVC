@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Projekt_MVC")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7592934475238b99958d731cb906001dfd55592e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+53aa9101e40ca2b163838bee789872651baeea89")]
 [assembly: System.Reflection.AssemblyProductAttribute("Projekt_MVC")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Projekt_MVC")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
