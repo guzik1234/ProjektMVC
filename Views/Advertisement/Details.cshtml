@@ -175,9 +175,80 @@
                     <p><strong>Autor:</strong> @Model.User?.Email</p>
                     <p><strong>Status:</strong> <span class="badge bg-success">@Model.Status</span></p>
                     <p><strong>Odsłony:</strong> @Model.ViewCount</p>
-                    <button class="btn btn-danger w-100 mb-2">Zgłoś ogłoszenie</button>
+                    <!-- DEBUG: userId=@userId, Model.UserId=@Model.UserId, isOwner=@isOwner -->
+                    @if (userId.HasValue && !isOwner)
+                    {
+                        <button type="button" class="btn btn-danger w-100 mb-2" id="reportBtn">Zgłoś ogłoszenie</button>
+                    }
+                    else if (!userId.HasValue)
+                    {
+                        <a href="/Account/Login" class="btn btn-danger w-100 mb-2">Zaloguj się, aby zgłosić</a>
+                    }
+                    else if (isOwner)
+                    {
+                        <p class="text-muted"><small>To jest Twoje ogłoszenie</small></p>
+                    }
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        (function() {
+            console.log('Script section loaded');
+            
+            function reportAd() {
+                console.log('reportAd called');
+                var reason = prompt('Podaj powód zgłoszenia:');
+                console.log('Reason:', reason);
+                
+                if (!reason || reason.trim() === '') {
+                    console.log('No reason provided');
+                    return;
+                }
+
+                fetch('/Advertisement/Report/@Model.Id', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'reason=' + encodeURIComponent(reason)
+                })
+                .then(function(response) {
+                    console.log('Response status:', response.status);
+                    return response.json();
+                })
+                .then(function(result) {
+                    console.log('Result:', result);
+                    if (result.success) {
+                        alert(result.message);
+                        var btn = document.getElementById('reportBtn');
+                        if (btn) {
+                            btn.disabled = true;
+                            btn.textContent = 'Zgłoszono';
+                            btn.classList.remove('btn-danger');
+                            btn.classList.add('btn-secondary');
+                        }
+                    } else {
+                        alert(result.message);
+                    }
+                })
+                .catch(function(err) {
+                    console.error('Error:', err);
+                    alert('Wystąpił błąd podczas zgłaszania ogłoszenia.');
+                });
+            }
+            
+            var reportBtn = document.getElementById('reportBtn');
+            console.log('Report button found:', reportBtn);
+            
+            if (reportBtn) {
+                reportBtn.addEventListener('click', reportAd);
+                console.log('Click listener attached');
+            }
+        })();
+    </script>
+}
+

@@ -541,6 +541,72 @@ namespace ogloszenia.Controllers
 
             return Ok(new { success = true });
         }
+
+        // POST: /Advertisement/Report/5
+        [HttpPost]
+        public async Task<IActionResult> Report(int id, string reason)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null)
+            {
+                return Json(new { success = false, message = "Musisz być zalogowany, aby zgłosić ogłoszenie." });
+            }
+
+            var advertisement = await _context.Advertisements.FindAsync(id);
+            if (advertisement == null)
+            {
+                return Json(new { success = false, message = "Ogłoszenie nie istnieje." });
+            }
+
+            // Check if user is not reporting their own advertisement
+            if (advertisement.UserId == userId)
+            {
+                return Json(new { success = false, message = "Nie możesz zgłosić własnego ogłoszenia." });
+            }
+
+            // Check if user already reported this advertisement
+            var existingReport = await _context.ModerationReports
+                .FirstOrDefaultAsync(r => r.AdvertisementId == id && r.ReportedByUserId == userId.Value && r.Status == ModerationReportStatus.Pending);
+            
+            if (existingReport != null)
+            {
+                return Json(new { success = false, message = "Już zgłosiłeś to ogłoszenie." });
+            }
+
+            var report = new ModerationReport
+            {
+                AdvertisementId = id,
+                ReportedByUserId = userId.Value,
+                Reason = reason ?? "Brak powodu",
+                Status = ModerationReportStatus.Pending,
+                CreatedAt = DateTime.Now
+            };
+
+            _context.ModerationReports.Add(report);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Ogłoszenie zostało zgłoszone do moderacji." });
+        }
+
+        // GET: /Advertisement/DownloadFile
+        [HttpGet]
+        public IActionResult DownloadFile(int fileId)
+        {
+            var file = _context.Files.FirstOrDefault(f => f.Id == fileId);
+            if (file == null)
+            {
+                return NotFound("Plik nie został znaleziony w bazie danych");
+            }
+
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", file.FilePath.TrimStart('/'));
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound($"Plik fizyczny nie istnieje: {filePath}");
+            }
+
+            var fileBytes = System.IO.File.ReadAllBytes(filePath);
+            return File(fileBytes, "application/pdf", file.FileName);
+        }
     }
 }
 
