@@ -1,4 +1,4 @@
-ï»¿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Projekt_MVC.Models
 {
@@ -6,20 +6,20 @@ namespace Projekt_MVC.Models
     {
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "TytuÅ‚ jest wymagany")]
-        [StringLength(100, ErrorMessage = "TytuÅ‚ moÅ¼e mieÄ‡ max 100 znakÃ³w")]
-        public string Title { get; set; }
+        [Required(ErrorMessage = "Tytu³ jest wymagany")]
+        [StringLength(100, ErrorMessage = "Tytu³ mo¿e mieæ max 100 znaków")]
+        public string Title { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Opis jest wymagany")]
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Cena jest wymagana")]
-        [Range(0, 1000000, ErrorMessage = "Cena musi byÄ‡ miÄ™dzy 0 a 1 000 000")]
+        [Range(0, 1000000, ErrorMessage = "Cena musi byæ miêdzy 0 a 1 000 000")]
         public decimal Price { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public int UserId { get; set; }
-        public virtual User User { get; set; }
-        public virtual ICollection<Category> Categories { get; set; } = new List<Category>();
+        public virtual User? User { get; set; }
+        public virtual ICollection<Category> Categories { get; set; } = null!;
     }
 }

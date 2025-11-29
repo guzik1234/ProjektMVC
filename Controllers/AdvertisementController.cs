@@ -1,33 +1,27 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Projekt_MVC.Data;
 using Projekt_MVC.Models;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Projekt_MVC.Controllers
 {
     public class AdvertisementController : Controller
     {
-        // Symulacja "bazy danych" w pamięci
-        private static List<Advertisement> _advertisements = new List<Advertisement>();
-        private static int _nextId = 1;
+        private readonly ApplicationDbContext _context;
 
-        public AdvertisementController()
+        public AdvertisementController(ApplicationDbContext context)
         {
-            // Dodajmy przykładowe dane jeśli lista jest pusta
-            if (!_advertisements.Any())
-            {
-                _advertisements.AddRange(new List<Advertisement>
-                {
-                    new Advertisement { Id = _nextId++, Title = "Sprzedam Opla", Description = "Bardzo sprawny samochód", Price = 5000, UserId = 1, CreatedAt = System.DateTime.Now },
-                    new Advertisement { Id = _nextId++, Title = "Kupię rower", Description = "Dowolny model, stan dobry", Price = 200, UserId = 2, CreatedAt = System.DateTime.Now }
-                });
-            }
+            _context = context;
         }
 
         // GET: /Advertisement
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View(_advertisements);
+            var advertisements = await _context.Advertisements
+                .Include(a => a.User)
+                .Include(a => a.Categories)
+                .ToListAsync();
+            return View(advertisements);
         }
 
         // GET: /Advertisement/Create
@@ -38,13 +32,19 @@ namespace Projekt_MVC.Controllers
 
         // POST: /Advertisement/Create
         [HttpPost]
-        public IActionResult Create(Advertisement advertisement)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(Advertisement advertisement)
         {
-            // TYMCZASOWO POMIŃ WALIDACJĘ - zapisz wszystko
-            advertisement.Id = _nextId++;
-            advertisement.CreatedAt = DateTime.Now;
-            _advertisements.Add(advertisement);
-            return RedirectToAction(nameof(Index));
+            if (ModelState.IsValid)
+            {
+                advertisement.CreatedAt = DateTime.Now;
+                advertisement.UserId = 1;
+                
+                _context.Advertisements.Add(advertisement);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            return View(advertisement);
         }
     }
 }

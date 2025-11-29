@@ -1,36 +1,30 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\krzys\\OneDrive\\Pulpit\\studia-inf\\5 semestr\\APLIKACJE_WEBOWE_MVC\\Projekt_MVC\\Projekt_MVC.csproj": {}
+    "C:\\Users\\mmare\\ProjektMVC\\Projekt_MVC.csproj": {}
   },
   "projects": {
-    "C:\\Users\\krzys\\OneDrive\\Pulpit\\studia-inf\\5 semestr\\APLIKACJE_WEBOWE_MVC\\Projekt_MVC\\Projekt_MVC.csproj": {
+    "C:\\Users\\mmare\\ProjektMVC\\Projekt_MVC.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\krzys\\OneDrive\\Pulpit\\studia-inf\\5 semestr\\APLIKACJE_WEBOWE_MVC\\Projekt_MVC\\Projekt_MVC.csproj",
+        "projectUniqueName": "C:\\Users\\mmare\\ProjektMVC\\Projekt_MVC.csproj",
         "projectName": "Projekt_MVC",
-        "projectPath": "C:\\Users\\krzys\\OneDrive\\Pulpit\\studia-inf\\5 semestr\\APLIKACJE_WEBOWE_MVC\\Projekt_MVC\\Projekt_MVC.csproj",
-        "packagesPath": "C:\\Users\\krzys\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\krzys\\OneDrive\\Pulpit\\studia-inf\\5 semestr\\APLIKACJE_WEBOWE_MVC\\Projekt_MVC\\obj\\",
+        "projectPath": "C:\\Users\\mmare\\ProjektMVC\\Projekt_MVC.csproj",
+        "packagesPath": "C:\\Users\\mmare\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\mmare\\ProjektMVC\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\krzys\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Users\\mmare\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
-          "net8.0"
+          "net6.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "net8.0": {
-            "targetAlias": "net8.0",
+          "net6.0": {
+            "targetAlias": "net6.0",
             "projectReferences": {}
           }
         },
@@ -38,25 +32,36 @@
           "warnAsError": [
             "NU1605"
           ]
-        },
-        "restoreAuditProperties": {
-          "enableAudit": "true",
-          "auditLevel": "low",
-          "auditMode": "direct"
-        },
-        "SdkAnalysisLevel": "9.0.300"
+        }
       },
       "frameworks": {
-        "net8.0": {
-          "targetAlias": "net8.0",
+        "net6.0": {
+          "targetAlias": "net6.0",
+          "dependencies": {
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[6.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.Sqlite": {
+              "target": "Package",
+              "version": "[6.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.Tools": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[6.0.0, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
             "net47",
             "net471",
             "net472",
-            "net48",
-            "net481"
+            "net48"
           ],
           "assetTargetFallback": true,
           "warn": true,
@@ -68,7 +73,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.307/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.321\\RuntimeIdentifierGraph.json"
         }
       }
     }
