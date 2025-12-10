@@ -1,0 +1,107 @@
+@model List<ogloszenia.Models.Dictionary>
+@{
+    ViewData["Title"] = "Zarządzanie słownikami";
+}
+
+<div class="container mt-4">
+    <h2>Zarządzanie słownikami</h2>
+    <p class="text-muted">Słowniki służą do definiowania list wartości dla atrybutów typu słownikowego</p>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Dodaj nowy słownik</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" asp-action="CreateDictionary">
+                @Html.AntiForgeryToken()
+                <div class="row">
+                    <div class="col-md-4">
+                        <input type="text" name="name" class="form-control" placeholder="Nazwa słownika" required />
+                    </div>
+                    <div class="col-md-6">
+                        <input type="text" name="description" class="form-control" placeholder="Opis" />
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">Dodaj</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        @foreach (var dict in Model)
+        {
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">@dict.Name</h5>
+                            @if (!string.IsNullOrEmpty(dict.Description))
+                            {
+                                <small class="text-muted">@dict.Description</small>
+                            }
+                        </div>
+                        <form method="post" asp-action="DeleteDictionary" style="display:inline;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@dict.Id" />
+                            <button type="submit" class="btn btn-sm btn-danger" 
+                                    onclick="return confirm('Czy na pewno usunąć słownik?')">
+                                🗑️ Usuń
+                            </button>
+                        </form>
+                    </div>
+                    <div class="card-body">
+                        <h6>Wartości:</h6>
+                        <ul class="list-group mb-3">
+                            @if (dict.Values.Any())
+                            {
+                                @foreach (var val in dict.Values)
+                                {
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        @val.Value
+                                        <form method="post" asp-action="DeleteDictionaryValue" style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@val.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">✕</button>
+                                        </form>
+                                    </li>
+                                }
+                            }
+                            else
+                            {
+                                <li class="list-group-item text-muted">Brak wartości</li>
+                            }
+                        </ul>
+
+                        <form method="post" asp-action="AddDictionaryValue">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="dictionaryId" value="@dict.Id" />
+                            <div class="input-group">
+                                <input type="text" name="value" class="form-control" placeholder="Nowa wartość" required />
+                                <button type="submit" class="btn btn-success">Dodaj</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            <strong>Brak słowników.</strong> Dodaj pierwszy słownik używając formularza powyżej.
+        </div>
+    }
+
+    <a href="/Admin/Dashboard" class="btn btn-secondary">← Powrót do panelu</a>
+</div>

@@ -1,0 +1,55 @@
+@model ogloszenia.Models.SystemSettings
+
+@inject ogloszenia.Services.ILocalizationService Localizer
+@{
+    ViewData["Title"] = Localizer.Get("ServiceSettingsTitle");
+}
+
+<div class="container mt-4">
+    <h1>Ustawienia serwisu</h1>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <form method="post" asp-action="Settings" class="mt-4">
+        <div class="mb-4">
+            <label for="adminMessage" class="form-label">Wiadomość dla użytkowników</label>
+            <textarea class="form-control" id="adminMessage" name="adminMessage" rows="5">@Model.AdminMessage</textarea>
+            <small class="form-text text-muted">Ta wiadomość będzie wyświetlana na stronie głównej</small>
+        </div>
+
+        <div class="mb-4">
+            <label for="maxFileSize" class="form-label">Maksymalny rozmiar pliku (MB)</label>
+            <input type="number" class="form-control" id="maxFileSize" name="maxFileSizeMB" value="@(Model.MaxFileSize / (1024 * 1024))" min="1" max="100" />
+            <small class="form-text text-muted">Określ maksymalny rozmiar jednego pliku (1-100 MB)</small>
+        </div>
+
+        <div class="mb-4">
+            <label for="maxFiles" class="form-label">Maksymalna liczba plików załączników</label>
+            <input type="number" class="form-control" id="maxFiles" name="maxFilesPerAdvertisement" value="@Model.MaxFilesPerAdvertisement" min="1" max="20" />
+            <small class="form-text text-muted">Maksymalna liczba plików załączników na ogłoszenie (1-20)</small>
+        </div>
+
+        <div class="mb-4">
+            <label for="maxMedia" class="form-label">Maksymalna liczba zdjęć/multimediów</label>
+            <input type="number" class="form-control" id="maxMedia" name="maxMediaPerAdvertisement" value="@Model.MaxMediaPerAdvertisement" min="1" max="20" />
+            <small class="form-text text-muted">Maksymalna liczba zdjęć na ogłoszenie (1-20)</small>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Zapisz ustawienia</button>
+        <a href="/Admin/Dashboard" class="btn btn-secondary">Anuluj</a>
+    </form>
+</div>

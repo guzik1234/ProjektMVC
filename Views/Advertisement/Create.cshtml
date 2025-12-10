@@ -1,0 +1,285 @@
+@model ogloszenia.Models.Advertisement
+
+@{
+    ViewData["Title"] = Localizer.Get("AddNewAd");
+    var categories = ViewBag.Categories as List<ogloszenia.Models.Category>;
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h1>@Localizer.Get("AddNewAd")</h1>
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            <form method="post" asp-action="Create" enctype="multipart/form-data" class="mt-4">
+                <div class="mb-3">
+                    <label for="Title" class="form-label">@Localizer.Get("Title") *</label>
+                    <input type="text" class="form-control" id="Title" name="Title" placeholder="@Localizer.Get("Title")" required />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label for="Description" class="form-label">@Localizer.Get("ShortDescription") *</label>
+                    <textarea class="form-control" id="Description" name="Description" rows="3" placeholder="@Localizer.Get("ShortDescription")" required></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label for="DetailedDescription" class="form-label">@Localizer.Get("DetailedDescription")</label>
+                    <textarea class="form-control" id="DetailedDescription" name="DetailedDescription" rows="5" placeholder="@Localizer.Get("DetailedDescription")"></textarea>
+                    <small class="form-text text-muted">@Localizer.Get("AllowedTags"): &lt;p&gt;, &lt;br&gt;, &lt;strong&gt;, &lt;em&gt;, &lt;a&gt;</small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="Categories" class="form-label">@Localizer.Get("SelectCategories") *</label>
+                    <div class="form-check">
+                        @if (categories != null)
+                        {
+                            @foreach (var category in categories)
+                            {
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="selectedCategories" value="@category.Id" id="cat@category.Id" />
+                                    <label class="form-check-label" for="cat@category.Id">
+                                        @category.Name
+                                    </label>
+                                </div>
+
+                                @if (category.ChildCategories != null && category.ChildCategories.Count > 0)
+                                {
+                                    <div class="ms-3">
+                                        @foreach (var child in category.ChildCategories)
+                                        {
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="selectedCategories" value="@child.Id" id="cat@child.Id" />
+                                                <label class="form-check-label" for="cat@child.Id">
+                                                    └─ @child.Name
+                                                </label>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            }
+                        }
+                    </div>
+                    <span asp-validation-for="Categories" class="text-danger"></span>
+                </div>
+
+                <div id="dynamicAttributes" class="mb-3">
+                    <!-- Dynamiczne atrybuty będą tu dodawane przez JavaScript -->
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">@Localizer.Get("Multimedia")</label>
+                    <input type="file" name="mediaFiles" class="form-control" multiple accept="image/*,audio/*,video/*" />
+                    <small class="form-text text-muted">@Localizer.Get("MaxFiles") @ViewBag.MaxMedia, @ViewBag.MaxFileSize MB</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">@Localizer.Get("FilesToDownload")</label>
+                    <input type="file" name="attachmentFiles" class="form-control" multiple />
+                    <small class="form-text text-muted">@Localizer.Get("MaxFiles") @ViewBag.MaxFiles, @ViewBag.MaxFileSize MB</small>
+                </div>
+
+                <div class="alert alert-danger" id="errorAlert" style="display:none;"></div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">@Localizer.Get("AddAdvertisement")</button>
+                    <a href="/Advertisement/Index" class="btn btn-secondary btn-lg">@Localizer.Get("Cancel")</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+    // Dane kategorii z atrybutami
+    var categoriesData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        ((List<ogloszenia.Models.Category>)ViewBag.Categories).Select(c => new {
+            Id = c.Id,
+            Name = c.Name,
+            Attributes = c.Attributes.Select(a => new {
+                Id = a.Id,
+                Name = a.Name,
+                Description = a.Description,
+                AttributeType = a.AttributeType,
+                IsRequired = a.IsRequired,
+                DictionaryId = a.DictionaryId,
+                DictionaryValues = a.Dictionary?.Values.Select(v => new { v.Id, v.Value }).ToList()
+            }).ToList(),
+            ChildCategories = c.ChildCategories?.Select(ch => new {
+                Id = ch.Id,
+                Name = ch.Name,
+                Attributes = ch.Attributes.Select(a => new {
+                    Id = a.Id,
+                    Name = a.Name,
+                    Description = a.Description,
+                    AttributeType = a.AttributeType,
+                    IsRequired = a.IsRequired,
+                    DictionaryId = a.DictionaryId,
+                    DictionaryValues = a.Dictionary?.Values.Select(v => new { v.Id, v.Value }).ToList()
+                }).ToList()
+            }).ToList()
+        }).ToList()
+    ));
+
+    // Nasłuchiwanie zmian w checkboxach kategorii
+    document.addEventListener('DOMContentLoaded', function() {
+        var checkboxes = document.querySelectorAll('input[name="selectedCategories"]');
+        checkboxes.forEach(function(checkbox) {
+            checkbox.addEventListener('change', updateDynamicAttributes);
+        });
+    });
+
+    function updateDynamicAttributes() {
+        var selectedCategoryIds = Array.from(document.querySelectorAll('input[name="selectedCategories"]:checked'))
+            .map(cb => parseInt(cb.value));
+        
+        var allAttributes = [];
+        var attributeIds = new Set();
+
+        // Zbieranie atrybutów ze wszystkich wybranych kategorii
+        selectedCategoryIds.forEach(function(catId) {
+            categoriesData.forEach(function(cat) {
+                if (cat.Id === catId) {
+                    cat.Attributes.forEach(function(attr) {
+                        if (!attributeIds.has(attr.Id)) {
+                            attributeIds.add(attr.Id);
+                            allAttributes.push(attr);
+                        }
+                    });
+                }
+                
+                if (cat.ChildCategories) {
+                    cat.ChildCategories.forEach(function(child) {
+                        if (child.Id === catId) {
+                            child.Attributes.forEach(function(attr) {
+                                if (!attributeIds.has(attr.Id)) {
+                                    attributeIds.add(attr.Id);
+                                    allAttributes.push(attr);
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        });
+
+        // Renderowanie pól atrybutów
+        var container = document.getElementById('dynamicAttributes');
+        container.innerHTML = '';
+
+        if (allAttributes.length > 0) {
+            var title = document.createElement('h5');
+            title.textContent = 'Atrybuty kategorii';
+            title.className = 'mt-3 mb-3';
+            container.appendChild(title);
+
+            allAttributes.forEach(function(attr) {
+                var div = document.createElement('div');
+                div.className = 'mb-3';
+
+                var label = document.createElement('label');
+                label.className = 'form-label';
+                label.textContent = attr.Name + (attr.IsRequired ? ' *' : '');
+                div.appendChild(label);
+
+                if (attr.Description) {
+                    var small = document.createElement('small');
+                    small.className = 'form-text text-muted d-block';
+                    small.textContent = attr.Description;
+                    div.appendChild(small);
+                }
+
+                var input;
+                switch (attr.AttributeType) {
+                    case 'shorttext':
+                        input = document.createElement('input');
+                        input.type = 'text';
+                        input.className = 'form-control';
+                        input.name = 'attr_' + attr.Id;
+                        input.required = attr.IsRequired;
+                        break;
+                    
+                    case 'longtext':
+                        input = document.createElement('textarea');
+                        input.className = 'form-control';
+                        input.name = 'attr_' + attr.Id;
+                        input.rows = 3;
+                        input.required = attr.IsRequired;
+                        break;
+                    
+                    case 'int':
+                        input = document.createElement('input');
+                        input.type = 'number';
+                        input.step = '1';
+                        input.className = 'form-control';
+                        input.name = 'attr_' + attr.Id;
+                        input.required = attr.IsRequired;
+                        break;
+                    
+                    case 'real':
+                        input = document.createElement('input');
+                        input.type = 'number';
+                        input.step = '0.01';
+                        input.className = 'form-control';
+                        input.name = 'attr_' + attr.Id;
+                        input.required = attr.IsRequired;
+                        break;
+                    
+                    case 'bool':
+                        var checkDiv = document.createElement('div');
+                        checkDiv.className = 'form-check';
+                        input = document.createElement('input');
+                        input.type = 'checkbox';
+                        input.className = 'form-check-input';
+                        input.name = 'attr_' + attr.Id;
+                        input.value = 'true';
+                        checkDiv.appendChild(input);
+                        var checkLabel = document.createElement('label');
+                        checkLabel.className = 'form-check-label';
+                        checkLabel.textContent = 'Tak';
+                        checkDiv.appendChild(checkLabel);
+                        div.appendChild(checkDiv);
+                        container.appendChild(div);
+                        return;
+                    
+                    case 'dictionary':
+                        input = document.createElement('select');
+                        input.className = 'form-select';
+                        input.name = 'attr_' + attr.Id;
+                        input.required = attr.IsRequired;
+                        
+                        var defaultOption = document.createElement('option');
+                        defaultOption.value = '';
+                        defaultOption.textContent = '-- wybierz --';
+                        input.appendChild(defaultOption);
+                        
+                        if (attr.DictionaryValues) {
+                            attr.DictionaryValues.forEach(function(val) {
+                                var option = document.createElement('option');
+                                option.value = val.Id;
+                                option.textContent = val.Value;
+                                input.appendChild(option);
+                            });
+                        }
+                        break;
+                    
+                    default:
+                        input = document.createElement('input');
+                        input.type = 'text';
+                        input.className = 'form-control';
+                        input.name = 'attr_' + attr.Id;
+                        break;
+                }
+
+                div.appendChild(input);
+                container.appendChild(div);
+            });
+        }
+    }
+    </script>
+}

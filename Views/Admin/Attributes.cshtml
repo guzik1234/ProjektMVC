@@ -1,0 +1,186 @@
+@model List<ogloszenia.Models.AdvertisementAttribute>
+@{
+    ViewData["Title"] = "Atrybuty kategorii: " + ViewBag.CategoryName;
+    var dictionaries = ViewBag.Dictionaries as List<ogloszenia.Models.Dictionary>;
+}
+
+<div class="container mt-4">
+    <h2>Atrybuty dla kategorii: <span class="text-primary">@ViewBag.CategoryName</span></h2>
+    <p class="text-muted">Atrybuty definiują dodatkowe pola dla ogłoszeń w tej kategorii</p>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Dodaj nowy atrybut</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" asp-action="CreateAttribute" id="createAttributeForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="categoryId" value="@ViewBag.CategoryId" />
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Nazwa atrybutu</label>
+                        <input type="text" name="name" class="form-control" placeholder="np. Cena, Lokalizacja, Marka" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Opis</label>
+                        <input type="text" name="description" class="form-control" placeholder="Opcjonalny opis" />
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Typ atrybutu</label>
+                        <select name="attributeType" id="attributeType" class="form-select" required>
+                            <option value="shorttext">Krótki tekst (input)</option>
+                            <option value="longtext">Długi tekst (textarea)</option>
+                            <option value="int">Liczba całkowita</option>
+                            <option value="real">Liczba rzeczywista</option>
+                            <option value="bool">Tak/Nie (checkbox)</option>
+                            <option value="dictionary">Słownikowy (lista)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4" id="dictionarySelectDiv" style="display:none;">
+                        <label class="form-label">Wybierz słownik</label>
+                        <select name="dictionaryId" id="dictionaryId" class="form-select">
+                            <option value="">-- wybierz słownik --</option>
+                            @if (dictionaries != null)
+                            {
+                                @foreach (var dict in dictionaries)
+                                {
+                                    <option value="@dict.Id">@dict.Name (@dict.Values.Count wartości)</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Wymagany?</label>
+                        <div class="form-check mt-2">
+                            <input type="checkbox" name="isRequired" class="form-check-input" id="isRequired" value="true" />
+                            <label class="form-check-label" for="isRequired">
+                                Pole wymagane
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Dodaj atrybut</button>
+                <a href="/Admin/Dictionaries" class="btn btn-outline-secondary">Zarządzaj słownikami</a>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Istniejące atrybuty (@Model.Count)</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nazwa</th>
+                                <th>Typ</th>
+                                <th>Słownik</th>
+                                <th>Wymagany</th>
+                                <th>Akcje</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var attr in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@attr.Name</strong>
+                                        @if (!string.IsNullOrEmpty(attr.Description))
+                                        {
+                                            <br /><small class="text-muted">@attr.Description</small>
+                                        }
+                                    </td>
+                                    <td>
+                                        @switch (attr.AttributeType)
+                                        {
+                                            case "shorttext": <span class="badge bg-info">Krótki tekst</span> break;
+                                            case "longtext": <span class="badge bg-info">Długi tekst</span> break;
+                                            case "int": <span class="badge bg-success">Liczba całkowita</span> break;
+                                            case "real": <span class="badge bg-success">Liczba rzeczywista</span> break;
+                                            case "bool": <span class="badge bg-warning">Tak/Nie</span> break;
+                                            case "dictionary": <span class="badge bg-primary">Słownikowy</span> break;
+                                            default: <span class="badge bg-secondary">@attr.AttributeType</span> break;
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (attr.Dictionary != null)
+                                        {
+                                            <span class="text-primary">@attr.Dictionary.Name</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (attr.IsRequired)
+                                        {
+                                            <span class="badge bg-danger">Wymagany</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Opcjonalny</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <form method="post" asp-action="DeleteAttribute" style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@attr.Id" />
+                                            <input type="hidden" name="categoryId" value="@ViewBag.CategoryId" />
+                                            <button type="submit" class="btn btn-sm btn-danger" 
+                                                    onclick="return confirm('Czy na pewno usunąć atrybut?')">
+                                                Usuń
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <strong>Brak atrybutów.</strong> Dodaj pierwszy atrybut używając formularza powyżej.
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a href="/Admin/Categories" class="btn btn-secondary">← Powrót do kategorii</a>
+    </div>
+</div>
+
+<script>
+document.getElementById('attributeType').addEventListener('change', function() {
+    var dictionaryDiv = document.getElementById('dictionarySelectDiv');
+    var dictionarySelect = document.getElementById('dictionaryId');
+    
+    if (this.value === 'dictionary') {
+        dictionaryDiv.style.display = 'block';
+        dictionarySelect.required = true;
+    } else {
+        dictionaryDiv.style.display = 'none';
+        dictionarySelect.required = false;
+    }
+});
+</script>

@@ -1,0 +1,105 @@
+@{
+    ViewData["Title"] = "Panel administracyjny";
+    int totalUsers = ViewBag.TotalUsers ?? 0;
+    int totalAdvertisements = ViewBag.TotalAdvertisements ?? 0;
+    int pendingModeration = ViewBag.PendingModeration ?? 0;
+    int totalCategories = ViewBag.TotalCategories ?? 0;
+}
+
+<div class="container mt-4">
+    <h1>Panel administracyjny</h1>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row mt-4">
+        <div class="col-md-3 mb-4">
+            <div class="card text-center bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Użytkownicy</h5>
+                    <h2>@totalUsers</h2>
+                    <a href="/Admin/Users" class="btn btn-light btn-sm">Zarządzaj</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Ogłoszenia</h5>
+                    <h2>@totalAdvertisements</h2>
+                    <a href="/Advertisement/Index" class="btn btn-light btn-sm">Przeglądaj</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="card text-center bg-warning text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Do moderacji</h5>
+                    <h2>@pendingModeration</h2>
+                    <a href="/Admin/Moderation" class="btn btn-light btn-sm">Sprawdź</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="card text-center bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Kategorie</h5>
+                    <h2>@totalCategories</h2>
+                    <a href="/Admin/Categories" class="btn btn-light btn-sm">Zarządzaj</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h3>Menu administracyjne</h3>
+            <div class="list-group">
+                <a href="/Admin/Users" class="list-group-item list-group-item-action">
+                    <h6>👥 Zarządzanie użytkownikami</h6>
+                    <small>Zarządzaj kontami użytkowników, uprzywilejami i statusem</small>
+                </a>
+                <a href="/Admin/Categories" class="list-group-item list-group-item-action">
+                    <h6>📁 Zarządzanie kategoriami</h6>
+                    <small>Twórz i edytuj kategorie ogłoszeń</small>
+                </a>
+                <a href="/Admin/Dictionaries" class="list-group-item list-group-item-action">
+                    <h6>📚 Słowniki atrybutów</h6>
+                    <small>Zarządzaj słownikami wartości dla atrybutów</small>
+                </a>
+                <a href="/Admin/ForbiddenWords" class="list-group-item list-group-item-action">
+                    <h6>🚫 Słowa zakazane</h6>
+                    <small>Zarządzaj słownikiem słów zakazanych</small>
+                </a>
+                <a href="/Admin/Moderation" class="list-group-item list-group-item-action">
+                    <h6>⚖️ Moderacja ogłoszeń</h6>
+                    <small>Sprawdzaj i rozpatruj zgłoszenia</small>
+                </a>
+                <a href="/Admin/AdminMessage" class="list-group-item list-group-item-action">
+                    <h6>📢 Wiadomość administratora</h6>
+                    <small>Edytuj wiadomość wyświetlaną na stronie głównej</small>
+                </a>
+                <a href="/Admin/Settings" class="list-group-item list-group-item-action">
+                    <h6>⚙️ Ustawienia serwisu</h6>
+                    <small>Zarządzaj wiadomościami i konfiguracją</small>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

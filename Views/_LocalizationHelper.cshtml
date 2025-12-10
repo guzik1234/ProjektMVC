@@ -1,0 +1,8 @@
+@inject ogloszenia.Services.ILocalizationService Localizer
+
+@functions {
+    public string T(string key)
+    {
+        return Localizer.Get(key);
+    }
+}

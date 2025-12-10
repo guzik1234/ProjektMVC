@@ -1,0 +1,38 @@
+﻿@using ogloszenia.Services
+@inject ILocalizationService Localization
+
+@{
+    var userId = Context.Session.GetInt32("UserId");
+    var username = Context.Session.GetString("Username");
+    var isAdmin = Context.Session.GetInt32("IsAdmin") == 1;
+}
+
+<ul class="navbar-nav">
+@if (userId.HasValue)
+{
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button" data-bs-toggle="dropdown">
+            👤 @username
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="/Account/Profile">@Localization.Get("MyProfile")</a></li>
+            @if (isAdmin)
+            {
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="/Admin/Dashboard">@Localization.Get("AdminPanel")</a></li>
+            }
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="/Account/Logout">@Localization.Get("Logout")</a></li>
+        </ul>
+    </li>
+}
+else
+{
+    <li class="nav-item">
+        <a class="nav-link text-dark" href="/Account/Login">@Localization.Get("Login")</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link text-dark" href="/Account/Register">@Localization.Get("Register")</a>
+    </li>
+}
+</ul>

@@ -1,0 +1,61 @@
+@{
+    ViewData["Title"] = Localizer.Get("RegisterTitle");
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">@Localizer.Get("RegisterTitle")</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" asp-action="Register">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">@Localizer.Get("Username") *</label>
+                            <input type="text" class="form-control" id="username" name="username" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">@Localizer.Get("Email") *</label>
+                            <input type="email" class="form-control" id="email" name="email" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="firstName" class="form-label">@Localizer.Get("FirstName")</label>
+                            <input type="text" class="form-control" id="firstName" name="firstName" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="lastName" class="form-label">@Localizer.Get("LastName")</label>
+                            <input type="text" class="form-control" id="lastName" name="lastName" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">@Localizer.Get("Password") *</label>
+                            <input type="password" class="form-control" id="password" name="password" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">@Localizer.Get("ConfirmPassword") *</label>
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required />
+                        </div>
+
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert alert-danger">
+                                @Html.ValidationSummary()
+                            </div>
+                        }
+
+                        <button type="submit" class="btn btn-primary w-100">@Localizer.Get("RegisterButton")</button>
+                    </form>
+
+                    <div class="mt-3 text-center">
+                        <p>@Localizer.Get("HaveAccount") <a href="/Account/Login">@Localizer.Get("LoginLink")</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

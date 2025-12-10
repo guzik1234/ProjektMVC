@@ -1,5 +1,6 @@
-﻿@{
-    ViewData["Title"] = "Privacy Policy";
+﻿@inject ogloszenia.Services.ILocalizationService Localizer
+@{
+    ViewData["Title"] = Localizer.Get("PrivacyPolicyTitle");
 }
 <h1>@ViewData["Title"]</h1>
 

@@ -1,0 +1,224 @@
+@model ogloszenia.Models.Advertisement
+
+@{
+    ViewData["Title"] = "Edytuj ogłoszenie";
+    var categories = ViewBag.Categories as List<ogloszenia.Models.Category>;
+    var selectedCategoryIds = ViewBag.SelectedCategoryIds as int[];
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h1>Edytuj ogłoszenie</h1>
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            <form method="post" asp-action="Edit" asp-route-id="@Model.Id" enctype="multipart/form-data" class="mt-4">
+                <input type="hidden" name="id" value="@Model.Id" />
+
+                <div class="mb-3">
+                    <label for="Title" class="form-label">Tytuł *</label>
+                    <input type="text" class="form-control" id="Title" name="Title" value="@Model.Title" required />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label for="Description" class="form-label">Krótki opis *</label>
+                    <textarea class="form-control" id="Description" name="Description" rows="3" required>@Model.Description</textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label for="DetailedDescription" class="form-label">Szczegółowy opis</label>
+                    <textarea class="form-control" id="DetailedDescription" name="DetailedDescription" rows="5">@Model.DetailedDescription</textarea>
+                    <small class="form-text text-muted">Dozwolone tagi: &lt;p&gt;, &lt;br&gt;, &lt;strong&gt;, &lt;em&gt;, &lt;a&gt;</small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="Categories" class="form-label">Kategorie *</label>
+                    <div class="form-check">
+                        @if (categories != null)
+                        {
+                            @foreach (var category in categories)
+                            {
+                                var isSelected = selectedCategoryIds?.Contains(category.Id) ?? false;
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="selectedCategories" value="@category.Id" id="cat@category.Id" @(isSelected ? "checked" : "") />
+                                    <label class="form-check-label" for="cat@category.Id">
+                                        @category.Name
+                                    </label>
+                                </div>
+
+                                @if (category.ChildCategories != null && category.ChildCategories.Count > 0)
+                                {
+                                    <div class="ms-3">
+                                        @foreach (var child in category.ChildCategories)
+                                        {
+                                            var isChildSelected = selectedCategoryIds?.Contains(child.Id) ?? false;
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="selectedCategories" value="@child.Id" id="cat@child.Id" @(isChildSelected ? "checked" : "") />
+                                                <label class="form-check-label" for="cat@child.Id">
+                                                    └─ @child.Name
+                                                </label>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            }
+                        }
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h5>Zdjęcia (multimedia)</h5>
+                    @if (Model.Media != null && Model.Media.Count > 0)
+                    {
+                        <div class="row mb-3">
+                            @foreach (var media in Model.Media.Where(m => m.MediaType.StartsWith("image")))
+                            {
+                                <div class="col-md-3 mb-3">
+                                    <div class="card">
+                                        <img src="@media.FilePath" class="card-img-top" alt="@media.FileName" style="max-height: 150px; object-fit: cover;" />
+                                        <div class="card-body p-2">
+                                            <button type="button" class="btn btn-sm btn-danger w-100 delete-media" data-media-id="@media.Id" data-ad-id="@Model.Id">Usuń</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Brak zdjęć. Dodaj nowe poniżej.</p>
+                    }
+                    <div class="mb-3">
+                        <label for="newMedia" class="form-label">Dodaj nowe zdjęcia</label>
+                        <input type="file" name="mediaFiles" id="newMedia" class="form-control" multiple accept="image/*" />
+                        <small class="form-text text-muted">Maksymalnie @ViewBag.MaxMedia plików, każdy do @ViewBag.MaxFileSize MB</small>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h5>Pliki do pobrania</h5>
+                    @if (Model.Files != null && Model.Files.Count > 0)
+                    {
+                        <ul class="list-group mb-3">
+                            @foreach (var file in Model.Files)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>@file.FileName</strong><br />
+                                        <small>@((file.FileSize / 1024.0).ToString("F2")) KB</small>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-danger delete-file" data-file-id="@file.Id" data-ad-id="@Model.Id">Usuń</button>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Brak plików. Dodaj nowe poniżej.</p>
+                    }
+                    <div class="mb-3">
+                        <label for="newFiles" class="form-label">Dodaj nowe pliki</label>
+                        <input type="file" name="attachmentFiles" id="newFiles" class="form-control" multiple />
+                        <small class="form-text text-muted">Maksymalnie @ViewBag.MaxFiles plików, każdy do @ViewBag.MaxFileSize MB</small>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">Zapisz zmiany</button>
+                    <a href="/Advertisement/Details/@Model.Id" class="btn btn-secondary btn-lg">Anuluj</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        function setupDeleteHandlers() {
+            // Delete media
+            document.querySelectorAll('.delete-media').forEach(function (btn) {
+                btn.removeEventListener('click', deleteMediaClick);
+                btn.addEventListener('click', deleteMediaClick);
+            });
+
+            // Delete file
+            document.querySelectorAll('.delete-file').forEach(function (btn) {
+                btn.removeEventListener('click', deleteFileClick);
+                btn.addEventListener('click', deleteFileClick);
+            });
+        }
+
+        async function deleteMediaClick(e) {
+            e.preventDefault();
+            if (!confirm('Czy na pewno chcesz usunąć to zdjęcie?')) return;
+
+            const mediaId = this.getAttribute('data-media-id');
+            const adId = this.getAttribute('data-ad-id');
+            console.log('Deleting media:', mediaId, 'from ad:', adId);
+            try {
+                const res = await fetch(`/Advertisement/DeleteMedia/${mediaId}`, { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                console.log('Delete response status:', res.status);
+                if (res.ok) {
+                    const closest = this.closest('.col-md-3');
+                    if (closest) {
+                        closest.remove();
+                        console.log('Media removed from DOM');
+                    }
+                } else {
+                    const errorText = await res.text();
+                    console.error('Delete failed:', res.status, errorText);
+                    alert('Błąd przy usuwaniu zdjęcia (status: ' + res.status + ')');
+                }
+            } catch (err) {
+                console.error('Delete error:', err);
+                alert('Błąd: ' + err.message);
+            }
+        }
+
+        async function deleteFileClick(e) {
+            e.preventDefault();
+            if (!confirm('Czy na pewno chcesz usunąć ten plik?')) return;
+
+            const fileId = this.getAttribute('data-file-id');
+            const adId = this.getAttribute('data-ad-id');
+            console.log('Deleting file:', fileId, 'from ad:', adId);
+            try {
+                const res = await fetch(`/Advertisement/DeleteFile/${fileId}`, { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                console.log('Delete response status:', res.status);
+                if (res.ok) {
+                    const closest = this.closest('li');
+                    if (closest) {
+                        closest.remove();
+                        console.log('File removed from DOM');
+                    }
+                } else {
+                    const errorText = await res.text();
+                    console.error('Delete failed:', res.status, errorText);
+                    alert('Błąd przy usuwaniu pliku (status: ' + res.status + ')');
+                }
+            } catch (err) {
+                console.error('Delete error:', err);
+                alert('Błąd: ' + err.message);
+            }
+        }
+
+        // Setup handlers when DOM is ready
+        document.addEventListener('DOMContentLoaded', setupDeleteHandlers);
+    </script>
+}
+

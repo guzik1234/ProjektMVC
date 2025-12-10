@@ -1,0 +1,21 @@
+@model ogloszenia.Models.Advertisement
+
+@inject ogloszenia.Services.ILocalizationService Localizer
+@{
+    ViewData["Title"] = Localizer.Get("DeleteAdTitle");
+}
+
+<div class="container mt-4">
+    <div class="card-body">
+        <h6>Czy na pewno chcesz usunąć to ogłoszenie?</h6>
+        <p class="text-muted">@Model.Title</p>
+        <p class="text-danger">Tej operacji nie można cofnąć!</p>
+
+        <form method="post" asp-action="Delete" asp-route-id="@Model.Id">
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger btn-lg">Usuń ogłoszenie</button>
+                <a href="/Advertisement/Details/@Model.Id" class="btn btn-secondary btn-lg">Anuluj</a>
+            </div>
+        </form>
+    </div>
+</div>

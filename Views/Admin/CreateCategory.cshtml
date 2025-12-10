@@ -1,0 +1,71 @@
+@{
+    ViewData["Title"] = "Dodaj kategorię";
+    var parentCategories = ViewBag.ParentCategories as List<ogloszenia.Models.Category>;
+    var parentId = ViewBag.ParentId as int?;
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <h1>Dodaj nową kategorię</h1>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <form method="post" asp-action="CreateCategory" class="mt-4">
+                <div class="mb-3">
+                    <label for="name" class="form-label">Nazwa kategorii *</label>
+                    <input type="text" class="form-control" id="name" name="name" required />
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Opis</label>
+                    <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="parentCategoryId" class="form-label">Kategoria nadrzędna (opcjonalnie)</label>
+                    <select class="form-select" id="parentCategoryId" name="parentCategoryId">
+                        <option value="">--- Kategoria główna ---</option>
+                        @if (parentCategories != null)
+                        {
+                            @foreach (var cat in parentCategories)
+                            {
+                                @if (parentId == cat.Id)
+                                {
+                                    <option value="@cat.Id" selected>@cat.Name</option>
+                                }
+                                else
+                                {
+                                    <option value="@cat.Id">@cat.Name</option>
+                                }
+                            }
+                        }
+                    </select>
+                    @if (parentId != null)
+                    {
+                        <small class="text-muted">Dodajesz podkategorię</small>
+                    }
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Dodaj kategorię</button>
+                    <a href="/Admin/Categories" class="btn btn-secondary">Anuluj</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

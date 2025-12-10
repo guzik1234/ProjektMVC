@@ -1,60 +1,95 @@
+ï»¿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Projekt_MVC.Models;
+using ogloszenia.Models;
+using System.Text.Json;
 
-namespace Projekt_MVC.Data
+namespace ogloszenia.Data
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
         }
 
-        public DbSet<Advertisement> Advertisements { get; set; }
-        public DbSet<Category> Categories { get; set; }
+        // Custom entities
         public DbSet<User> Users { get; set; }
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<Advertisement> Advertisements { get; set; }
+        public DbSet<AdvertisementAttribute> AdvertisementAttributes { get; set; }
+        public DbSet<AdvertisementAttributeValue> AttributeValues { get; set; }
+        public DbSet<Dictionary> Dictionaries { get; set; }
+        public DbSet<DictionaryValue> DictionaryValues { get; set; }
+        public DbSet<AdvertisementMedia> Media { get; set; }
+        public DbSet<AdvertisementFile> Files { get; set; }
+        public DbSet<ModerationReport> ModerationReports { get; set; }
+        public DbSet<NewsletterCriteria> NewsletterCriteria { get; set; }
+        public DbSet<SystemSettings> SystemSettings { get; set; }
+        public DbSet<RssConfig> RssConfigs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Konfiguracja relacji Advertisement - User
-            modelBuilder.Entity<Advertisement>()
-                .HasOne(a => a.User)
-                .WithMany()
-                .HasForeignKey(a => a.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
+            // Ignore complex dictionary property
+            modelBuilder.Entity<NewsletterCriteria>()
+                .Ignore(n => n.AttributeFilters);
+            
+            // Configure JSON conversion for SystemSettings lists
+            modelBuilder.Entity<SystemSettings>()
+                .Property(s => s.ForbiddenWords)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                    v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions)null) ?? new List<string>()
+                );
 
-            // Konfiguracja relacji wiele-do-wielu Advertisement - Category
-            modelBuilder.Entity<Advertisement>()
-                .HasMany(a => a.Categories)
-                .WithMany(c => c.Advertisements)
-                .UsingEntity(j => j.ToTable("AdvertisementCategories"));
+            modelBuilder.Entity<SystemSettings>()
+                .Property(s => s.AllowedHtmlTags)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                    v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions)null) ?? new List<string>()
+                );
 
-            // Konfiguracja hierarchicznej struktury Category
+            // Configure relationships and constraints
             modelBuilder.Entity<Category>()
-                .HasOne(c => c.ParentCategory)
-                .WithMany(c => c.ChildCategories)
+                .HasMany(c => c.ChildCategories)
+                .WithOne(c => c.ParentCategory)
                 .HasForeignKey(c => c.ParentCategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Dane przyk³adowe
-            modelBuilder.Entity<User>().HasData(
-                new User { Id = 1, Username = "admin", Email = "admin@example.com", PasswordHash = "hash123", IsAdmin = true },
-                new User { Id = 2, Username = "jan_kowalski", Email = "jan@example.com", PasswordHash = "hash456", IsAdmin = false }
-            );
+            modelBuilder.Entity<Category>()
+                .HasMany(c => c.Advertisements)
+                .WithMany(a => a.Categories);
 
-            modelBuilder.Entity<Category>().HasData(
-                new Category { Id = 1, Name = "Motoryzacja", ParentCategoryId = null },
-                new Category { Id = 2, Name = "Elektronika", ParentCategoryId = null },
-                new Category { Id = 3, Name = "Samochody", ParentCategoryId = 1 },
-                new Category { Id = 4, Name = "Telefony", ParentCategoryId = 2 }
-            );
+            modelBuilder.Entity<Advertisement>()
+                .HasOne(a => a.User)
+                .WithMany(u => u.Advertisements)
+                .HasForeignKey(a => a.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Advertisement>().HasData(
-                new Advertisement { Id = 1, Title = "Sprzedam Opla", Description = "Bardzo sprawny samochód", Price = 5000, UserId = 1, CreatedAt = new DateTime(2025, 11, 29) },
-                new Advertisement { Id = 2, Title = "Kupiê rower", Description = "Dowolny model, stan dobry", Price = 200, UserId = 2, CreatedAt = new DateTime(2025, 11, 29) }
-            );
+            modelBuilder.Entity<AdvertisementAttributeValue>()
+                .HasOne(av => av.Advertisement)
+                .WithMany(a => a.AttributeValues)
+                .HasForeignKey(av => av.AdvertisementId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<AdvertisementMedia>()
+                .HasOne(m => m.Advertisement)
+                .WithMany(a => a.Media)
+                .HasForeignKey(m => m.AdvertisementId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<AdvertisementFile>()
+                .HasOne(f => f.Advertisement)
+                .WithMany(a => a.Files)
+                .HasForeignKey(f => f.AdvertisementId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ModerationReport>()
+                .HasOne(mr => mr.Advertisement)
+                .WithMany(a => a.ModerationReports)
+                .HasForeignKey(mr => mr.AdvertisementId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

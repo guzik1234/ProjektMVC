@@ -1,0 +1,137 @@
+@inject ogloszenia.Services.ILocalizationService Localizer
+@{
+    ViewData["Title"] = Localizer.Get("ForbiddenWordsTitle");
+    var forbiddenWords = ViewBag.ForbiddenWords as List<string>;
+}
+
+<div class="container mt-4">
+    <h1>Zarządzanie słowami zakazanymi</h1>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Słowa zakazane</h5>
+                </div>
+                <div class="card-body">
+                    @if (forbiddenWords != null && forbiddenWords.Count > 0)
+                    {
+                        <div class="alert alert-info mb-3">
+                            <strong>📊 Statystyka:</strong> Lista zawiera <strong>@forbiddenWords.Count</strong> zakazanych słów
+                        </div>
+                        <div class="list-group">
+                            @foreach (var word in forbiddenWords)
+                            {
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span><strong>@word</strong></span>
+                                    <form method="post" asp-action="RemoveForbiddenWord" style="display: inline;">
+                                        <input type="hidden" name="word" value="@word" />
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Czy na pewno chcesz usunąć słowo: @word?')">Usuń</button>
+                                    </form>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">
+                            <strong>⚠️ Brak zakazanych słów</strong><br>
+                            <small>Dodaj pierwsze słowo zakazane za pomocą formularza poniżej.</small>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5>Dodaj nowe słowo</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" asp-action="AddForbiddenWord">
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="word" placeholder="Wpisz słowo zakazane..." required />
+                            <button type="submit" class="btn btn-primary">Dodaj</button>
+                        </div>
+                        <small class="text-muted mt-2 d-block">
+                            💡 Słowa są zapisywane małymi literami i porównywane bez względu na wielkość liter
+                        </small>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">ℹ️ Jak to działa?</h5>
+                </div>
+                <div class="card-body">
+                    <h6>📝 Filtrowanie treści</h6>
+                    <p class="small">
+                        Słowa zakazane są automatycznie wykrywane podczas:
+                    </p>
+                    <ul class="small">
+                        <li><strong>Tworzenia ogłoszenia</strong> - system sprawdza tytuł i opis</li>
+                        <li><strong>Edycji ogłoszenia</strong> - ponowna walidacja</li>
+                    </ul>
+
+                    <hr>
+
+                    <h6>🚫 Co się dzieje?</h6>
+                    <p class="small">
+                        Jeśli użytkownik użyje zakazanego słowa:
+                    </p>
+                    <ol class="small">
+                        <li>System <strong>blokuje</strong> publikację</li>
+                        <li>Wyświetla komunikat błędu</li>
+                        <li>Pokazuje <strong>które słowa</strong> są zabronione</li>
+                        <li>Użytkownik musi poprawić treść</li>
+                    </ol>
+
+                    <hr>
+
+                    <h6>⚙️ Szczegóły techniczne</h6>
+                    <ul class="small mb-0">
+                        <li>Porównanie <strong>bez względu na wielkość liter</strong></li>
+                        <li>Słowa sprawdzane w całym tekście</li>
+                        <li>Działa dla fragmentów słów (np. "spam" znajdzie "spammer")</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header bg-warning">
+                    <h6 class="mb-0">💡 Wskazówki</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="small mb-0">
+                        <li>Dodawaj tylko <strong>pojedyncze słowa</strong></li>
+                        <li>Unikaj dodawania popularnych słów</li>
+                        <li>Testuj nowe słowa na testowych ogłoszeniach</li>
+                        <li>Regularnie przeglądaj listę</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="/Admin/Dashboard" class="btn btn-secondary">Wróć do panelu</a>
+    </div>
+</div>

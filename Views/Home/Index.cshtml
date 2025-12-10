@@ -1,31 +1,125 @@
-﻿@model List<Projekt_MVC.Models.Advertisement> // <!-- ← WAŻNE: prawidłowy namespace -->
-
+﻿@inject ogloszenia.Services.ILocalizationService Localizer
 @{
-    ViewData["Title"] = "Strona Główna";
+    ViewData["Title"] = Localizer.Get("HomeTitle");
+    var adminMessage = ViewBag.AdminMessage as string;
+    var latestAds = ViewBag.LatestAds as List<ogloszenia.Models.Advertisement>;
+    var allCategories = ViewBag.AllCategories as List<ogloszenia.Models.Category>;
 }
 
-<div class="text-center">
-    <h1 class="display-4">ssssssasasasasaasasWitamy w serwisie ogłoszeń drobnych!</h1>
-    <p>Najnowsze ogłoszenia w naszym serwisie:</p>
-</div>
-
-<div class="row">
-    @foreach (var advertisement in Model)
-    {
-        <div class="col-md-4 mb-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">@advertisement.Title</h5>
-                    <p class="card-text">@advertisement.Description</p>
-                    <p class="card-text"><strong>Cena: @advertisement.Price.ToString("C")</strong></p>
-                    <small class="text-muted">Data dodania: @advertisement.CreatedAt.ToString("dd.MM.yyyy")</small>
+<div class="container mt-5">
+    <!-- Hero Section -->
+    <div class="row mb-5">
+        <div class="col-md-8 offset-md-2 text-center">
+            <h1 class="display-4 mb-3">@Localizer.Get("ClassifiedsService")</h1>
+            <p class="lead text-muted">@Localizer.Get("SearchingOrSelling")</p>
+            
+            <form action="/Advertisement/Search" method="get" class="mb-4">
+                <div style="max-width: 700px; margin: 0 auto;">
+                    <div class="row g-2">
+                        <div class="col-md-9">
+                            <input type="text" class="form-control form-control-lg" placeholder="@Localizer.Get("SearchAds")" name="q" />
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-primary btn-lg w-100" type="submit">@Localizer.Get("Search")</button>
+                        </div>
+                    </div>
                 </div>
+            </form>
+
+            <div class="btn-group" role="group">
+                <a href="/Advertisement/Index" class="btn btn-outline-primary btn-lg">@Localizer.Get("BrowseAll")</a>
+                <a href="/Advertisement/Create" class="btn btn-primary btn-lg">@Localizer.Get("AddAdvertisement")</a>
             </div>
         </div>
+    </div>
+
+    <!-- Admin Message -->
+    @if (!string.IsNullOrEmpty(adminMessage))
+    {
+        <div class="alert alert-info mb-5">
+            <h5>📢 @Localizer.Get("AdminMessageTitle")</h5>
+            @Html.Raw(adminMessage)
+        </div>
     }
+
+    <!-- Latest Advertisements -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2>@Localizer.Get("LatestAds")</h2>
+            <hr />
+        </div>
+
+        @if (latestAds != null && latestAds.Count > 0)
+        {
+            @foreach (var ad in latestAds.Take(6))
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a href="/Advertisement/Details/@ad.Id" class="text-decoration-none">@ad.Title</a>
+                            </h5>
+                            <p class="card-text text-muted">
+                                <small>@ad.CreatedAt.ToString("dd.MM.yyyy HH:mm")</small>
+                            </p>
+                            <p class="card-text">
+                                @ad.Description.Substring(0, Math.Min(100, ad.Description.Length))...
+                            </p>
+                            <div class="mb-2">
+                                @foreach (var cat in ad.Categories.Take(2))
+                                {
+                                    <span class="badge bg-info">@cat.Name</span>
+                                }
+                            </div>
+                            <p class="text-muted">
+                                <small>👁️ @ad.ViewCount @Localizer.Get("views")</small>
+                            </p>
+                            <a href="/Advertisement/Details/@ad.Id" class="btn btn-sm btn-primary">@Localizer.Get("Details")</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="alert alert-info">@Localizer.Get("NoAds")</div>
+            </div>
+        }
+    </div>
+
+    <!-- Features -->
+    <div class="row bg-light py-5 rounded mb-5">
+        <div class="col-md-3 text-center">
+            <h5>📋 @Localizer.Get("EasyAdding")</h5>
+            <p class="text-muted">@Localizer.Get("EasyAddingDesc")</p>
+        </div>
+        <div class="col-md-3 text-center">
+            <h5>🔍 @Localizer.Get("FastSearch")</h5>
+            <p class="text-muted">@Localizer.Get("FastSearchDesc")</p>
+        </div>
+        <div class="col-md-3 text-center">
+            <h5>📁 @Localizer.Get("CategoriesFeature")</h5>
+            <p class="text-muted">@Localizer.Get("CategoriesDesc")</p>
+        </div>
+        <div class="col-md-3 text-center">
+            <h5>✅ @Localizer.Get("SecureTransaction")</h5>
+            <p class="text-muted">@Localizer.Get("SecureTransactionDesc")</p>
+        </div>
+    </div>
 </div>
 
-<div class="text-center mt-4">
-    <a href="@Url.Action("Index", "Advertisement")" class="btn btn-primary">Zobacz wszystkie ogłoszenia</a>
-    <a href="@Url.Action("Create", "Advertisement")" class="btn btn-success">Dodaj nowe ogłoszenie</a>
-</div>
+<script>
+    document.getElementById('searchBtn').addEventListener('click', function() {
+        const query = document.getElementById('searchInput').value;
+        if (query.trim()) {
+            window.location.href = '/Advertisement/Search?q=' + encodeURIComponent(query);
+        }
+    });
+    
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('searchBtn').click();
+        }
+    });
+</script>

@@ -1,0 +1,49 @@
+@{
+    ViewData["Title"] = Localizer.Get("LoginTitle");
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">@Localizer.Get("LoginTitle")</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" asp-action="Login">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">@Localizer.Get("UsernameOrEmail") *</label>
+                            <input type="text" class="form-control" id="username" name="username" required autofocus />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">@Localizer.Get("Password") *</label>
+                            <input type="password" class="form-control" id="password" name="password" required />
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="rememberMe" />
+                            <label class="form-check-label" for="rememberMe">
+                                @Localizer.Get("RememberMe")
+                            </label>
+                        </div>
+
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert alert-danger">
+                                @Html.ValidationSummary()
+                            </div>
+                        }
+
+                        <button type="submit" class="btn btn-primary w-100">@Localizer.Get("LoginButton")</button>
+                    </form>
+
+                    <div class="mt-3 text-center">
+                        <p>@Localizer.Get("NoAccount") <a href="/Account/Register">@Localizer.Get("RegisterLink")</a></p>
+                        <p><a href="/Account/ForgotPassword">@Localizer.Get("ForgotPassword")</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,25 +1,108 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Projekt_MVC.Models
+namespace ogloszenia.Models
 {
     public class Advertisement
     {
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "Tytu³ jest wymagany")]
-        [StringLength(100, ErrorMessage = "Tytu³ mo¿e mieæ max 100 znaków")]
+        [Required]
         public string Title { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Opis jest wymagany")]
+        [Required]
         public string Description { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Cena jest wymagana")]
-        [Range(0, 1000000, ErrorMessage = "Cena musi byæ miêdzy 0 a 1 000 000")]
-        public decimal Price { get; set; }
+        // Dla HTML w opisach
+        public string DetailedDescription { get; set; } = string.Empty;
 
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
         public int UserId { get; set; }
         public virtual User? User { get; set; }
-        public virtual ICollection<Category> Categories { get; set; } = null!;
+
+        // Kategorie (moÅ¼e byÄ‡ wiele)
+        public virtual List<Category> Categories { get; set; } = new();
+
+        // Atrybuty ogÅ‚oszenia
+        public virtual List<AdvertisementAttributeValue> AttributeValues { get; set; } = new();
+
+        // Multimedia (obrazki, dÅºwiÄ™ki, animacje)
+        public virtual List<AdvertisementMedia> Media { get; set; } = new();
+
+        // Pliki do pobrania
+        public virtual List<AdvertisementFile> Files { get; set; } = new();
+
+        // Status moderacji
+        public AdvertisementStatus Status { get; set; } = AdvertisementStatus.Active;
+
+        // Licznik odsÅ‚on
+        public int ViewCount { get; set; } = 0;
+
+        // ZgÅ‚oszenia do moderacji
+        public virtual List<ModerationReport> ModerationReports { get; set; } = new();
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime? UpdatedAt { get; set; }
+    }
+
+    public enum AdvertisementStatus
+    {
+        Active = 0,
+        PendingModeration = 1,
+        Rejected = 2,
+        Archived = 3
+    }
+
+    public class AdvertisementMedia
+    {
+        public int Id { get; set; }
+
+        public int AdvertisementId { get; set; }
+        public virtual Advertisement? Advertisement { get; set; }
+
+        public string FileName { get; set; } = string.Empty;
+        public string FilePath { get; set; } = string.Empty;
+        public string MediaType { get; set; } = "image/jpeg"; // image, audio, video
+
+        public DateTime UploadedAt { get; set; } = DateTime.Now;
+    }
+
+    public class AdvertisementFile
+    {
+        public int Id { get; set; }
+
+        public int AdvertisementId { get; set; }
+        public virtual Advertisement? Advertisement { get; set; }
+
+        public string FileName { get; set; } = string.Empty;
+        public string FilePath { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+
+        public long FileSize { get; set; }
+
+        public DateTime UploadedAt { get; set; } = DateTime.Now;
+    }
+
+    public class ModerationReport
+    {
+        public int Id { get; set; }
+
+        public int AdvertisementId { get; set; }
+        public virtual Advertisement? Advertisement { get; set; }
+
+        public int ReportedByUserId { get; set; }
+        public virtual User? ReportedByUser { get; set; }
+
+        public string Reason { get; set; } = string.Empty;
+
+        public ModerationReportStatus Status { get; set; } = ModerationReportStatus.Pending;
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime? ResolvedAt { get; set; }
+    }
+
+    public enum ModerationReportStatus
+    {
+        Pending = 0,
+        Rejected = 1,
+        Approved = 2
     }
 }

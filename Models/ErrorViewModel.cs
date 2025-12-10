@@ -1,4 +1,4 @@
-namespace Projekt_MVC.Models
+namespace ogloszenia.Models
 {
     public class ErrorViewModel
     {

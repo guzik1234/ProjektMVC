@@ -1,0 +1,79 @@
+/* Blue Theme */
+body.theme-blue {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+body.theme-blue .navbar {
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%) !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+body.theme-blue .navbar-brand,
+body.theme-blue .nav-link {
+    color: white !important;
+}
+
+body.theme-blue .nav-link:hover {
+    color: #f0f0f0 !important;
+}
+
+body.theme-blue .card {
+    background-color: rgba(255, 255, 255, 0.95);
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+body.theme-blue .card-header {
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px 10px 0 0 !important;
+    border: none;
+}
+
+body.theme-blue .btn-primary {
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(102, 126, 234, 0.4);
+}
+
+body.theme-blue .btn-primary:hover {
+    background: linear-gradient(90deg, #764ba2 0%, #667eea 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.6);
+}
+
+body.theme-blue .form-control:focus,
+body.theme-blue .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+body.theme-blue h1, 
+body.theme-blue h2, 
+body.theme-blue h3,
+body.theme-blue h4 {
+    color: #333;
+    font-weight: 600;
+}
+
+body.theme-blue .badge {
+    border-radius: 5px;
+}
+
+body.theme-blue footer {
+    background: rgba(255, 255, 255, 0.95);
+    border-top: none;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+}
+
+body.theme-blue .container {
+    background-color: transparent;
+}
+
+body.theme-blue .alert {
+    border-radius: 10px;
+    border: none;
+}

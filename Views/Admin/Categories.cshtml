@@ -1,0 +1,223 @@
+@model List<ogloszenia.Models.Category>
+
+@{
+    ViewData["Title"] = "Zarządzanie kategoriami";
+}
+
+<div class="container mt-4">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>Zarządzanie kategoriami</h1>
+        </div>
+        <div class="col-md-4">
+            <a href="/Admin/CreateCategory" class="btn btn-primary float-end">+ Dodaj nową kategorię</a>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Count > 0)
+    {
+        <div class="row">
+            @foreach (var category in Model)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">@category.Name</h5>
+                            <p class="card-text text-muted">@category.Description</p>
+                            
+                            @if (category.ChildCategories != null && category.ChildCategories.Count > 0)
+                            {
+                                <div class="mb-2">
+                                    <strong>Podkategorie (@category.ChildCategories.Count):</strong>
+                                    <ul class="list-unstyled ms-3">
+                                        @foreach (var child in category.ChildCategories)
+                                        {
+                                            <li class="mb-2 d-flex align-items-center">
+                                                <span class="me-2">└─ @child.Name</span>
+                                                <button type="button" class="btn btn-xs btn-outline-warning me-1" style="--bs-btn-padding-y: .15rem; --bs-btn-padding-x: .4rem; --bs-btn-font-size: .75rem;" onclick="showModal('editCategory@child.Id')">
+                                                    ✏️
+                                                </button>
+                                                <button type="button" class="btn btn-xs btn-outline-danger" style="--bs-btn-padding-y: .15rem; --bs-btn-padding-x: .4rem; --bs-btn-font-size: .75rem;" onclick="showModal('deleteCategory@child.Id')">
+                                                    🗑️
+                                                </button>
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+
+                            <div class="mt-3">
+                                <button type="button" class="btn btn-sm btn-warning" onclick="showModal('editCategory@category.Id')">
+                                    Edytuj
+                                </button>
+                                <a href="/Admin/CreateCategory?parentId=@category.Id" class="btn btn-sm btn-info">Dodaj podkategorię</a>
+                                <a href="/Admin/Attributes?categoryId=@category.Id" class="btn btn-sm btn-success">Atrybuty</a>
+                                <button type="button" class="btn btn-sm btn-danger" onclick="showModal('deleteCategory@category.Id')">
+                                    Usuń
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        @* Wszystkie modale na końcu *@
+        @foreach (var category in Model)
+        {
+            <!-- Modal - Edycja kategorii głównej -->
+            <div class="modal fade" id="editCategory@category.Id" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form method="post" asp-action="EditCategory">
+                            <input type="hidden" name="id" value="@category.Id" />
+                            <div class="modal-header">
+                                <h5 class="modal-title">Edytuj kategorię: @category.Name</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Nazwa kategorii *</label>
+                                    <input type="text" class="form-control" name="name" value="@category.Name" required />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Opis</label>
+                                    <textarea class="form-control" name="description" rows="3">@category.Description</textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                                <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal - Usuwanie kategorii głównej -->
+            <div class="modal fade" id="deleteCategory@category.Id" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form method="post" asp-action="DeleteCategory">
+                            <input type="hidden" name="id" value="@category.Id" />
+                            <div class="modal-header">
+                                <h5 class="modal-title">Usuń kategorię</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Czy na pewno chcesz usunąć kategorię <strong>@category.Name</strong>?</p>
+                                @if (category.ChildCategories != null && category.ChildCategories.Count > 0)
+                                {
+                                    <div class="alert alert-warning">
+                                        <strong>Uwaga!</strong> Ta kategoria ma @category.ChildCategories.Count podkategorii. Najpierw usuń podkategorie.
+                                    </div>
+                                }
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                                <button type="submit" class="btn btn-danger" @(category.ChildCategories != null && category.ChildCategories.Count > 0 ? "disabled" : "")>Usuń</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            @* Modale dla podkategorii *@
+            @if (category.ChildCategories != null)
+            {
+                @foreach (var child in category.ChildCategories)
+                {
+                    <!-- Modal - Edycja podkategorii -->
+                    <div class="modal fade" id="editCategory@child.Id" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form method="post" asp-action="EditCategory">
+                                    <input type="hidden" name="id" value="@child.Id" />
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Edytuj podkategorię: @child.Name</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Nazwa podkategorii *</label>
+                                            <input type="text" class="form-control" name="name" value="@child.Name" required />
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Opis</label>
+                                            <textarea class="form-control" name="description" rows="3">@child.Description</textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                                        <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal - Usuwanie podkategorii -->
+                    <div class="modal fade" id="deleteCategory@child.Id" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form method="post" asp-action="DeleteCategory">
+                                    <input type="hidden" name="id" value="@child.Id" />
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Usuń podkategorię</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Czy na pewno chcesz usunąć podkategorię <strong>@child.Name</strong>?</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                                        <button type="submit" class="btn btn-danger">Usuń</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        }
+    }
+    else
+    {
+        <div class="alert alert-info">Brak kategorii. <a href="/Admin/CreateCategory">Dodaj pierwszą kategorię</a></div>
+    }
+
+    <div class="mt-4">
+        <a href="/Admin/Dashboard" class="btn btn-secondary">Wróć do panelu</a>
+    </div>
+</div>
+
+<script>
+function showModal(modalId) {
+    console.log('Trying to show modal:', modalId);
+    var modalElement = document.getElementById(modalId);
+    if (modalElement) {
+        console.log('Modal element found:', modalElement);
+        var modal = new bootstrap.Modal(modalElement);
+        modal.show();
+    } else {
+        console.error('Modal not found:', modalId);
+        alert('Modal nie został znaleziony: ' + modalId);
+    }
+}
+</script>

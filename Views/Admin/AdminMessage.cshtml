@@ -1,0 +1,59 @@
+@model ogloszenia.Models.SystemSettings
+
+@inject ogloszenia.Services.ILocalizationService Localizer
+@{
+    ViewData["Title"] = Localizer.Get("AdminMessageTitle2");
+}
+
+<div class="container mt-4">
+    <h1>Wiadomość Administratora</h1>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Edytuj wiadomość na stronie głównej</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" asp-action="AdminMessage">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label for="message" class="form-label">Wiadomość</label>
+                    <textarea class="form-control" id="message" name="message" rows="5">@Model?.AdminMessage</textarea>
+                    <small class="form-text text-muted">
+                        Ta wiadomość będzie wyświetlana na stronie głównej serwisu. Możesz używać HTML.
+                    </small>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Zapisz wiadomość</button>
+                <a href="/Admin/Dashboard" class="btn btn-secondary">Anuluj</a>
+            </form>
+        </div>
+    </div>
+
+    @if (Model != null && !string.IsNullOrEmpty(Model.AdminMessage))
+    {
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Podgląd</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    @Html.Raw(Model.AdminMessage)
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="mt-3">
+        <small class="text-muted">
+            Ostatnia aktualizacja: @(Model?.LastUpdated.ToString("dd.MM.yyyy HH:mm") ?? "Nigdy")
+        </small>
+    </div>
+</div>

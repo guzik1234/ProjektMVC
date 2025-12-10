@@ -1,0 +1,276 @@
+@model ogloszenia.Models.Advertisement
+
+@{
+    ViewData["Title"] = Localizer.Get("AdDetails");
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h1>@Model.Title</h1>
+            
+            <div class="alert alert-light border p-3 mb-4">
+                <p>
+                    <strong>@Localizer.Get("Author"):</strong> @Model.User?.FirstName @Model.User?.LastName<br />
+                    <strong>@Localizer.Get("DateAdded"):</strong> @Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")<br />
+                    <strong>@Localizer.Get("Views"):</strong> @Model.ViewCount<br />
+                    <strong>@Localizer.Get("AdStatus"):</strong> <span class="badge bg-success">@Model.Status</span>
+                </p>
+            </div>
+
+            <div class="mb-4">
+                <h3>@Localizer.Get("Categories")</h3>
+                @foreach (var cat in Model.Categories)
+                {
+                    <span class="badge bg-info me-2">@cat.Name</span>
+                }
+            </div>
+
+            <div class="mb-4">
+                <h3>@Localizer.Get("Description")</h3>
+                <p>@Model.Description</p>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.DetailedDescription))
+            {
+                <div class="mb-4">
+                    <h3>@Localizer.Get("Details")</h3>
+                    <div class="alert alert-light border p-3">
+                        @Html.Raw(Model.DetailedDescription)
+                    </div>
+                </div>
+            }
+
+            @if (Model.AttributeValues != null && Model.AttributeValues.Count > 0)
+            {
+                <div class="mb-4">
+                    <h3>Specyfikacja</h3>
+                    <table class="table table-striped">
+                        <tbody>
+                            @foreach (var attrVal in Model.AttributeValues)
+                            {
+                                <tr>
+                                    <td><strong>@attrVal.Attribute?.Name</strong></td>
+                                    <td>
+                                        @if (attrVal.Attribute?.AttributeType == "bool")
+                                        {
+                                            @(attrVal.Value == "true" ? "✓ Tak" : "✗ Nie")
+                                        }
+                                        else if (attrVal.Attribute?.AttributeType == "dictionary" && attrVal.DictionaryValueId.HasValue)
+                                        {
+                                            var dictValue = attrVal.Attribute?.Dictionary?.Values.FirstOrDefault(v => v.Id == attrVal.DictionaryValueId);
+                                            @(dictValue?.Value ?? attrVal.Value)
+                                        }
+                                        else
+                                        {
+                                            @attrVal.Value
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+            @if (Model.Media != null && Model.Media.Count > 0)
+            {
+                <div class="mb-4">
+                    <h3>@Localizer.Get("Multimedia")</h3>
+                    <div class="row">
+                        @* Thumbnails that open the modal *@
+                        @foreach (var media in Model.Media.Where(m => m.MediaType.StartsWith("image")))
+                        {
+                            var idx = Model.Media.Where(m2 => m2.MediaType.StartsWith("image")).ToList().FindIndex(m2 => m2.Id == media.Id);
+                            <div class="col-md-3 mb-3">
+                                <img src="@media.FilePath" class="img-fluid rounded media-thumb" alt="@media.FileName" data-index="@idx" style="cursor:pointer;" />
+                            </div>
+                        }
+                    </div>
+
+                    @* Modal with carousel for enlarged images *@
+                    <div class="modal fade" id="mediaModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-body p-0">
+                                    <div id="mediaCarousel" class="carousel slide" data-bs-ride="false">
+                                        <div class="carousel-inner">
+                                            @{
+                                                var images = Model.Media.Where(m => m.MediaType.StartsWith("image")).ToList();
+                                                for (int i = 0; i < images.Count; i++)
+                                                {
+                                                    var im = images[i];
+                                                    <text>
+                                                        <div class="carousel-item @(i==0 ? "active" : "") text-center">
+                                                            <img src="@im.FilePath" class="d-block w-100" alt="@im.FileName" />
+                                                        </div>
+                                                    </text>
+                                                }
+                                            }
+                                        </div>
+
+                                        <button class="carousel-control-prev" type="button" data-bs-target="#mediaCarousel" data-bs-slide="prev">
+                                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                            <span class="visually-hidden">Previous</span>
+                                        </button>
+                                        <button class="carousel-control-next" type="button" data-bs-target="#mediaCarousel" data-bs-slide="next">
+                                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                            <span class="visually-hidden">Next</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer.Get("Cancel")</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            var modalEl = document.getElementById('mediaModal');
+                            if (!modalEl) return;
+                            var modal = new bootstrap.Modal(modalEl);
+                            var carouselEl = document.getElementById('mediaCarousel');
+                            var bsCarousel = null;
+                            if (carouselEl) {
+                                bsCarousel = new bootstrap.Carousel(carouselEl, { interval: false, ride: false });
+                            }
+
+                            document.querySelectorAll('.media-thumb').forEach(function (el) {
+                                el.addEventListener('click', function () {
+                                    var idx = parseInt(el.getAttribute('data-index')) || 0;
+                                    if (bsCarousel) {
+                                        bsCarousel.to(idx);
+                                    }
+                                    modal.show();
+                                });
+                            });
+                        });
+                    </script>
+                </div>
+            }
+
+            @if (Model.Files != null && Model.Files.Count > 0)
+            {
+                <div class="mb-4">
+                    <h3>@Localizer.Get("FilesToDownload")</h3>
+                    <ul class="list-group">
+                        @foreach (var file in Model.Files)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>@file.FileName</strong><br />
+                                    <small>@file.Description</small>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <small class="text-muted">@((file.FileSize / 1024.0).ToString("F2")) KB</small>
+                                    <a asp-action="DownloadFile" asp-route-fileId="@file.Id" class="btn btn-sm btn-outline-primary">@Localizer.Get("Download")</a>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            <div class="mb-4">
+                <a href="/Advertisement/Index" class="btn btn-secondary">@Localizer.Get("Back")</a>
+                @{
+                    var userId = Context.Session.GetInt32("UserId");
+                    var isAdmin = Context.Session.GetInt32("IsAdmin") == 1;
+                    var isOwner = userId.HasValue && userId.Value == Model.UserId;
+                }
+                @if (isOwner || isAdmin)
+                {
+                    <a href="/Advertisement/Edit/@Model.Id" class="btn btn-warning">@Localizer.Get("Edit")</a>
+                    <a href="/Advertisement/Delete/@Model.Id" class="btn btn-danger">@Localizer.Get("Delete")</a>
+                }
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5>@Localizer.Get("AdDetails")</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>@Localizer.Get("Author"):</strong> @Model.User?.Email</p>
+                    <p><strong>@Localizer.Get("AdStatus"):</strong> <span class="badge bg-success">@Model.Status</span></p>
+                    <p><strong>@Localizer.Get("Views"):</strong> @Model.ViewCount</p>
+                    <!-- DEBUG: userId=@userId, Model.UserId=@Model.UserId, isOwner=@isOwner -->
+                    @if (userId.HasValue && !isOwner)
+                    {
+                        <button type="button" class="btn btn-danger w-100 mb-2" id="reportBtn">@Localizer.Get("ReportAd")</button>
+                    }
+                    else if (!userId.HasValue)
+                    {
+                        <a href="/Account/Login" class="btn btn-danger w-100 mb-2">@Localizer.Get("Login")</a>
+                    }
+                    else if (isOwner)
+                    {
+                        <p class="text-muted"><small>@Localizer.Get("MyAds")</small></p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function() {
+            console.log('Script section loaded');
+            
+            function reportAd() {
+                console.log('reportAd called');
+                var reason = prompt('Podaj powód zgłoszenia:');
+                console.log('Reason:', reason);
+                
+                if (!reason || reason.trim() === '') {
+                    console.log('No reason provided');
+                    return;
+                }
+
+                fetch('/Advertisement/Report/@Model.Id', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'reason=' + encodeURIComponent(reason)
+                })
+                .then(function(response) {
+                    console.log('Response status:', response.status);
+                    return response.json();
+                })
+                .then(function(result) {
+                    console.log('Result:', result);
+                    if (result.success) {
+                        alert(result.message);
+                        var btn = document.getElementById('reportBtn');
+                        if (btn) {
+                            btn.disabled = true;
+                            btn.textContent = 'Zgłoszono';
+                            btn.classList.remove('btn-danger');
+                            btn.classList.add('btn-secondary');
+                        }
+                    } else {
+                        alert(result.message);
+                    }
+                })
+                .catch(function(err) {
+                    console.error('Error:', err);
+                    alert('Wystąpił błąd podczas zgłaszania ogłoszenia.');
+                });
+            }
+            
+            var reportBtn = document.getElementById('reportBtn');
+            console.log('Report button found:', reportBtn);
+            
+            if (reportBtn) {
+                reportBtn.addEventListener('click', reportAd);
+                console.log('Click listener attached');
+            }
+        })();
+    </script>
+}
+
